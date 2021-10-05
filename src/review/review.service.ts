@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UsePipes } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { ReviewModel } from './review.model';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { CompanyService } from '../company/company.service';
 import { CompanyModel } from '../company/company.model';
+import { ValidationPipe } from '../pipes/validation.pipe';
 
 @Injectable()
 export class ReviewService {

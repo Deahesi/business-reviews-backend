@@ -1,14 +1,14 @@
 {
 	"rules": {
 		"no-var-requires": true,
-		"no-any": true,
+		"no-any": false,
 		"promise-function-async": true,
 		"await-promise": true,
 		"curly": true,
 		"prefer-for-of": true,
 		"forin": true,
 		"no-console": [
-			true,
+			false,
 			"log",
 			"error"
 		],
@@ -17,7 +17,7 @@
 		"no-duplicate-switch-case": true,
 		"no-invalid-template-strings": true,
 		"no-misused-new": true,
-		"no-return-await": true,
+		"no-return-await": false,
 		"no-shadowed-variable": true,
 		"no-switch-case-fall-through": true,
 		"no-tautology-expression": true,

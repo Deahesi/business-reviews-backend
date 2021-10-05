@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Injectable, Param, Post } from '@nestjs/common';
-import { CompanyDto } from './dto/company.dto';
+import { CompanyDto, CompanyExistDto } from './dto/company.dto';
 import { CompanyService } from './company.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CompanyModel } from './company.model';
@@ -21,5 +21,12 @@ export class CompanyController {
   @Get('/:id')
   async getCompanyById(@Param('id') id: number) {
     return this.companyService.getCompanyById(id)
+  }
+
+  @ApiOperation({summary: 'Get company by ID'})
+  @ApiResponse({ status: 202, type: CompanyModel })
+  @Post('/exist')
+  async checkCompanyExist(@Body() dto: CompanyExistDto) {
+    return this.companyService.checkCompanyExist(dto)
   }
 }

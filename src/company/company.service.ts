@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { CompanyModel } from './company.model';
-import { CompanyDto } from './dto/company.dto';
+import { CompanyDto, CompanyExistDto } from './dto/company.dto';
 import { ReviewModel } from '../review/review.model';
 import { CityService } from '../city/city.service';
+import { Sequelize } from 'sequelize-typescript';
 
 @Injectable()
 export class CompanyService {
@@ -12,7 +13,7 @@ export class CompanyService {
   }
 
   async createCompany(dto: CompanyDto) {
-    const company = await this.companyRepository.create(dto);
+    const company = await this.companyRepository.create(dto)
     await this.cityService.addCompanyToCity(company)
     return company;
   }
@@ -25,5 +26,10 @@ export class CompanyService {
   async getCompanyByName(company_name: string) {
     const company = await this.companyRepository.findOne({ where: { name: company_name }  })
     return company
+  }
+
+  async checkCompanyExist(dto: CompanyExistDto) {
+    const company = await this.companyRepository.findOne({ where: { name: dto.name }  })
+    return company ? { exist: true } : { exist: false }
   }
 }

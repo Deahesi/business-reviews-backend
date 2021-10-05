@@ -95,5 +95,5 @@ export class CompanyModel extends Model<CompanyModel, CreateCompany> {
   company_reviews: ReviewModel[]
 
   @ForeignKey(() => CityModel)
-  city_id: number;
+  private city_id: number;
 }
