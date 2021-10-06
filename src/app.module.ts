@@ -10,6 +10,7 @@ import { CompanyModel } from './company/company.model';
 import { ReviewModel } from './review/review.model';
 import { CityModule } from './city/city.module';
 import { CityModel } from './city/city.model';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CityModel } from './city/city.model';
     AuthModule,
     CityModule,
     CompanyModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

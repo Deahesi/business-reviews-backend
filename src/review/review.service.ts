@@ -5,6 +5,7 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { CompanyService } from '../company/company.service';
 import { CompanyModel } from '../company/company.model';
 import { ValidationPipe } from '../pipes/validation.pipe';
+import { CompanyNotfoundException } from '../exceptions/company-notfound.exception';
 
 @Injectable()
 export class ReviewService {
@@ -16,7 +17,10 @@ export class ReviewService {
     let company: CompanyModel
     company = await this.companyService.getCompanyByName(dto.company_name)
     if (!company) {
-      company = await this.companyService.createCompany(dto.company)
+      throw new CompanyNotfoundException([{
+        field: 'company',
+        errors: ['No company with this name!']
+      }])
     }
     const review = await this.reviewRepository.create({ ...dto, company_id: company.id })
     await company.$set('company_reviews', [...await company.$get('company_reviews'), review])
