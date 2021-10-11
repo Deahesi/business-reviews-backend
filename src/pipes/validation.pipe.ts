@@ -11,12 +11,22 @@ export class ValidationPipe implements PipeTransform<any> {
     const errors = await validate(obj);
 
     if (errors.length) {
-      const messages = errors.map(err => ({
-        field: err.property,
-        errors: Object.values(err.constraints)
-      }));
+      const messages = this.transformErrors(errors).flat()
       throw new ValidationException(messages);
     }
     return value
+  }
+
+  private transformErrors(errors) {
+    return errors.map(err => {
+      if (err.children.length) {
+        return this.transformErrors(err.children)
+      }
+      const returnErrors = {
+        field: err.property,
+        errors: Object.values(err.constraints || {})
+      }
+      return returnErrors
+    });
   }
 }

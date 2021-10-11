@@ -1,21 +1,43 @@
 import {
-  Allow,
-  IsEmail, IsInstance,
-  IsJSON,
+  IsDefined,
+  IsEmail,
   IsNotEmpty,
-  IsNumber,
+  IsNumber, IsObject,
   IsOptional,
   IsString,
   IsUrl,
   Length,
   Max,
-  Min,
+  Min, ValidateNested
 } from 'class-validator';
-import { CompanyType } from '../../company/company.model';
+import { CompanyModel, CompanyType } from '../../company/company.model';
 import { Type } from 'class-transformer';
-import { CompanyDto } from '../../company/dto/company.dto';
 
-class CreateCompanyDto {
+export class CreateReviewDto {
+  @IsString({message: 'This field must be string'})
+  @IsNotEmpty({message: 'This field cannot be empty'})
+  readonly company_name: string
+
+  @IsString({message: 'This field must be string'})
+  @IsNotEmpty({message: 'This field cannot be empty'})
+  @Length(15, 5000, {message: 'length of this field must be between 15 and 5000'})
+  readonly review: string
+
+  @IsNumber({}, {message: 'This field must be Integer'})
+  @IsNotEmpty({message: 'This field cannot be empty'})
+  @Max(5, {message: 'This field cannot be more than 5'})
+  @Min(0, {message: 'This field cannot be more than 5'})
+  readonly rating: string
+
+  @IsString({message: 'This field must be string'})
+  @IsNotEmpty({message: 'This field cannot be empty'})
+  readonly user_fullname: string
+
+  @IsOptional()
+  readonly image?: string
+}
+
+class CompanyDto {
   @IsString({message: 'This field must be string'})
   @IsNotEmpty({message: 'This field cannot be empty'})
   readonly name: string
@@ -63,7 +85,7 @@ class CreateCompanyDto {
   readonly email?: string
 }
 
-export class CreateReviewDto {
+export class CreateReviewWithCompanyDto {
   @IsString({message: 'This field must be string'})
   @IsNotEmpty({message: 'This field cannot be empty'})
   readonly company_name: string
@@ -86,7 +108,8 @@ export class CreateReviewDto {
   @IsOptional()
   readonly image?: string
 
-  @IsOptional()
+  @IsDefined({message: 'This field cannot be empty'})
+  @ValidateNested()
   @Type(() => CompanyDto)
-  readonly company?: CompanyDto
+  company: CompanyDto
 }

@@ -7,11 +7,15 @@ import { CityService } from '../city/city.service';
 import { Op } from 'sequelize';
 import { CompanyNotfoundException } from '../exceptions/company-notfound.exception';
 import { UniqueName } from '../exceptions/unique-name';
+import { SearchDto } from '../search/dto/search.dto';
+import { CompanySearchService } from './company-search.service';
+import { SearchCompanyDto } from './dto/search-company.dto';
 
 @Injectable()
 export class CompanyService {
   constructor(@InjectModel(CompanyModel) private companyRepository: typeof CompanyModel,
-              private readonly cityService: CityService) {
+              private readonly cityService: CityService,
+              private readonly companySearchService: CompanySearchService) {
     // setInterval(async () => {
     //   await this.companyRepository.destroy({
     //     where: {
@@ -36,6 +40,7 @@ export class CompanyService {
       }])
     }
     company = await this.companyRepository.create(dto);
+    this.companySearchService.indexCompany(company)
     await this.cityService.addCompanyToCity(company);
     return company;
   }
@@ -53,5 +58,14 @@ export class CompanyService {
   async checkCompanyExist(dto: CompanyExistDto) {
     const company = await this.companyRepository.findOne({ where: { name: dto.name } });
     return company ? { exist: true } : { exist: false };
+  }
+
+  async searchByQuery(dto: SearchCompanyDto) {
+    const results = await this.companySearchService.search(dto.query)
+    const ids = results.map(result => result.id)
+    if (!ids.length) {
+      return [];
+    }
+    return await this.companyRepository.findAll({ where: { id: { [Op.in]: ids } } })
   }
 }

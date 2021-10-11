@@ -3,6 +3,7 @@ import { CompanyDto, CompanyExistDto } from './dto/company.dto';
 import { CompanyService } from './company.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CompanyModel } from './company.model';
+import { SearchCompanyDto } from './dto/search-company.dto';
 
 @ApiTags('Companies')
 @Controller('company')
@@ -28,5 +29,12 @@ export class CompanyController {
   @Post('/exist')
   async checkCompanyExist(@Body() dto: CompanyExistDto) {
     return this.companyService.checkCompanyExist(dto)
+  }
+
+  @ApiOperation({summary: 'Get company by ID'})
+  @ApiResponse({ status: 202, type: CompanyModel })
+  @Post('/search')
+  async search(@Body() dto: SearchCompanyDto) {
+    return this.companyService.searchByQuery(dto)
   }
 }
