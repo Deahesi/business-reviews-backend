@@ -36,7 +36,7 @@ export class ReviewModel extends Model<ReviewModel, CreateReview> {
       max: 5
     }
   })
-  rating: string;
+  rating: number;
 
   @ApiProperty({ example: 'Иван Иванов', description: 'User fullname' })
   @Column({ type: DataType.STRING, unique: false, allowNull: false })

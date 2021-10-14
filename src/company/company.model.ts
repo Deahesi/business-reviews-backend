@@ -14,7 +14,9 @@ export interface CreateCompany {
   address?: string
   site?: string
   phone?: string
-  email?: string
+  email?: string,
+  reviews_count?: number,
+  rating?: number
 }
 
 export type CompanyType = 'company' | 'brand' | 'site' | 'school'
@@ -69,31 +71,55 @@ export class CompanyModel extends Model<CompanyModel, CreateCompany> {
 
   @ApiProperty({ example: 'https://site.site', description: 'Company site' })
   @Column({
-    type: DataType.STRING, unique: false, allowNull: true, validate: {
-      isUrl: true
-    }
+    type: DataType.ARRAY(DataType.STRING), unique: false, allowNull: true
   })
-  site?: string;
+  sites?: string[];
 
   @ApiProperty({ example: '+88888888888', description: 'Company contact phone' })
   @Column({
-    type: DataType.STRING, unique: false, allowNull: true, validate: {
-      len: [2, 30]
-    }
+    type: DataType.ARRAY(DataType.STRING), unique: false, allowNull: true
   })
-  phone?: string;
+  phones?: string[];
 
   @ApiProperty({ example: 'email@emial.email', description: 'Company contact email' })
   @Column({
-    type: DataType.STRING, unique: true, allowNull: true, validate: {
-      isEmail: true
-    }
+    type: DataType.ARRAY(DataType.STRING), unique: false, allowNull: true
   })
-  email?: string;
+  emails?: string[];
 
   @HasMany(() => ReviewModel)
   company_reviews: ReviewModel[]
 
+  @ApiProperty({ example: 15, description: 'Reviews count' })
+  @Column({ type: DataType.INTEGER, unique: false, allowNull: false })
+  reviews_count: number
+
+  @ApiProperty({ example: 3.7, description: 'Company rating' })
+  @Column({ type: DataType.FLOAT, unique: false, allowNull: false, validate: {
+      min: 0,
+      max: 5
+    } })
+  rating: number
+
   @ForeignKey(() => CityModel)
   private city_id: number;
+
+  getSearchData() {
+    return {
+      id: this.id,
+      name: this.name,
+      city: this.city,
+      rating: this.rating,
+      reviews_count: this.reviews_count,
+      type: this.type
+    }
+  }
+
+  getFastSearchData() {
+    return {
+      id: this.id,
+      name: this.name,
+      city: this.city
+    }
+  }
 }

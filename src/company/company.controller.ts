@@ -31,10 +31,17 @@ export class CompanyController {
     return this.companyService.checkCompanyExist(dto)
   }
 
-  @ApiOperation({summary: 'Get company by ID'})
+  @ApiOperation({summary: 'Search company'})
   @ApiResponse({ status: 202, type: CompanyModel })
   @Post('/search')
   async search(@Body() dto: SearchCompanyDto) {
     return this.companyService.searchByQuery(dto)
+  }
+
+  @ApiOperation({summary: 'Fast search in input'})
+  @ApiResponse({ status: 202, type: CompanyModel })
+  @Post('/input-search')
+  async inputSearch(@Body() dto: Omit<SearchCompanyDto, 'page'>) {
+    return this.companyService.searchInput(dto)
   }
 }

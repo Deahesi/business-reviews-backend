@@ -7,7 +7,7 @@ export interface CompanySearchBody {
   inn: string,
   ogrn: string,
   address: string,
-  site: string,
-  phone: string,
-  email: string
+  sites: string[],
+  phones: string[],
+  emails: string[]
 }

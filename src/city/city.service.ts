@@ -17,8 +17,8 @@ export class CityService {
     return city
   }
 
-  async getCompaniesByCity(city: string) {
-    const companies = await this.cityRepository.findAll({ where: { city }, include: [{ model: CompanyModel }]  })
-    return companies
+  async getCompaniesByCity(city: string, page: number) {
+    const companies = await this.cityRepository.findOne({ limit: 10, offset: (page - 1) * 10, where: { city },  include: [{ model: CompanyModel }]  })
+    return companies.city_companies
   }
 }

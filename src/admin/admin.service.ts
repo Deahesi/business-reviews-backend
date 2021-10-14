@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { ModeratorModel } from './moderator.model';
 import { CreateModeratorDto } from './dto/moderator.dto';
@@ -10,6 +10,7 @@ import { ReviewService } from '../review/review.service';
 import { DeleteReviewDto } from './dto/delete-review.dto';
 import { CompanyNotfoundException } from '../exceptions/company-notfound.exception';
 import { JwtService } from '@nestjs/jwt';
+import { UnauthorizedException } from '../exceptions/unauthorized.exception';
 
 @Injectable()
 export class AdminService {

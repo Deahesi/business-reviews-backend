@@ -1,6 +1,7 @@
 import { Column, DataType } from 'sequelize-typescript';
 import { CompanyType } from '../company.model';
-import { IsEmail, IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsArray, IsEmail, IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CompanyDto {
   @IsString({message: 'This field must be string'})
@@ -35,19 +36,22 @@ export class CompanyDto {
   @IsOptional()
   readonly address?: string
 
-  @IsString({message: 'This field must be string'})
+  @IsArray({message: 'This field must be array'})
   @IsOptional()
-  @IsUrl({}, {message: 'Invalid url address'})
-  readonly site?: string
+  @IsUrl({}, {message: 'Invalid url address', each: true})
+  @IsString({ each: true, message: 'Each element must be string' })
+  readonly sites?: string[]
 
-  @IsString({message: 'This field must be string'})
+  @IsString({ each: true, message: 'Each element must be string' })
+  @IsArray({message: 'This field must be array'})
   @IsOptional()
-  readonly phone?: string
+  readonly phones?: string[]
 
-  @IsString({message: 'This field must be string'})
-  @IsEmail({}, {message: 'Invalid email'})
+  @IsString({ each: true, message: 'Each element must be string' })
+  @IsArray({message: 'This field must be array'})
+  @IsEmail({}, {message: 'Invalid email', each: true})
   @IsOptional()
-  readonly email?: string
+  readonly emails?: string[]
 }
 
 export class CompanyExistDto {

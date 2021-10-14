@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 // import { SearchDto } from './dto/search.dto';
-import { CompanyService } from './company.service';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { CompanyModel } from './company.model';
 import { CompanySearchResult } from './search-index/company-search-result.interface';
@@ -10,7 +9,8 @@ import { CompanySearchBody } from './search-index/company-search-body.interface'
 export class CompanySearchService {
   constructor(private readonly elasticsearchService: ElasticsearchService) {
   }
-  index = 'company'
+
+  index = 'company';
 
 
   async indexCompany(company: CompanyModel) {
@@ -25,11 +25,11 @@ export class CompanySearchService {
         inn: company.inn,
         ogrn: company.ogrn,
         address: company.address,
-        site: company.site,
-        phone: company.phone,
-        email: company.email
+        sites: company.sites,
+        phones: company.phones,
+        emails: company.emails
       }
-    })
+    });
   }
 
   async search(query: string) {
@@ -39,14 +39,15 @@ export class CompanySearchService {
         query: {
           multi_match: {
             query: query,
-            fields: ['id', 'name', 'city', 'entity', 'businessmanSurname', 'inn', 'ogrn', 'address', 'site', 'phone', 'email']
+            fields: ['id', 'name', 'city', 'entity', 'businessmanSurname', 'inn', 'ogrn', 'address', 'site', 'phone', 'email'],
+            lenient: true
           }
         }
       }
-    })
+    });
 
-    const hits = body.hits.hits
-    return hits.map((item) => item._source)
+    const hits = body.hits.hits;
+    return hits.map((item) => item._source);
   }
 
   private async remove(id: number) {
@@ -55,10 +56,10 @@ export class CompanySearchService {
       body: {
         query: {
           match: {
-            id: id.toString(),
+            id: id.toString()
           }
         }
       }
-    })
+    });
   }
 }
