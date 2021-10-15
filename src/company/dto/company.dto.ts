@@ -1,6 +1,6 @@
 import { Column, DataType } from 'sequelize-typescript';
 import { CompanyType } from '../company.model';
-import { IsArray, IsEmail, IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsArray, IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CompanyDto {
@@ -58,4 +58,14 @@ export class CompanyExistDto {
   @IsString({message: 'This field must be string'})
   @IsNotEmpty({message: 'This field cannot be empty'})
   readonly name: string
+}
+
+export class BindCompanyDto {
+  @IsNumber({}, { message: 'his field must be number' })
+  @IsNotEmpty({message: 'This field cannot be empty'})
+  company1_id: number
+
+  @IsNumber({}, { message: 'his field must be number' })
+  @IsNotEmpty({message: 'This field cannot be empty'})
+  company2_id: number
 }

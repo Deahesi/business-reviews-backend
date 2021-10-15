@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { CompanyModel } from './company.model';
-import { CompanyDto, CompanyExistDto } from './dto/company.dto';
+import { CompanyDto, CompanyExistDto, BindCompanyDto } from './dto/company.dto';
 import { ReviewModel } from '../review/review.model';
 import { CityService } from '../city/city.service';
 import { Op } from 'sequelize';
@@ -9,6 +9,7 @@ import { UniqueName } from '../exceptions/unique-name';
 import { CompanySearchService } from './company-search.service';
 import { SearchCompanyDto } from './dto/search-company.dto';
 import { CompanyNotfoundException } from '../exceptions/company-notfound.exception';
+import { ValidationException } from '../exceptions/validation.exception';
 
 @Injectable()
 export class CompanyService {
@@ -35,10 +36,10 @@ export class CompanyService {
     if (company) {
       throw new UniqueName([{
         field: 'company_name',
-        errors: ['This field must be unique']
+        errors: ['This field must be unique'],
       }]);
     }
-    company = await this.companyRepository.create({ ...dto, reviews_count: 0, rating: 0 });
+    company = await this.companyRepository.create({ ...dto, reviews_count: 0, rating: 0, related_companies: [] });
     await this.companySearchService.indexCompany(company);
     await this.cityService.addCompanyToCity(company);
     return company;
@@ -49,7 +50,7 @@ export class CompanyService {
     if (!company) {
       throw new CompanyNotfoundException([{
         field: 'company',
-        errors: ['No company with this id!']
+        errors: ['No company with this id!'],
       }]);
     }
     return company;
@@ -58,7 +59,7 @@ export class CompanyService {
   async getCompanyByName(company_name: string, reviews: boolean) {
     const company = await this.companyRepository.findOne({
       where: { name: company_name },
-      include: reviews ? [{ model: ReviewModel }] : undefined
+      include: reviews ? [{ model: ReviewModel }] : undefined,
     });
     return company;
   }
@@ -84,7 +85,7 @@ export class CompanyService {
       where: { id: { [Op.in]: ids }, city: dto.city },
       include: [{ model: ReviewModel }],
       limit: 10, offset: (dto.page - 1) * 10,
-      order: [['rating', 'DESC']]
+      order: [['rating', 'DESC']],
     })).map((c) => c.getSearchData());
   }
 
@@ -100,7 +101,37 @@ export class CompanyService {
       where: { id: { [Op.in]: ids }, city: dto.city ?? undefined },
       include: [{ model: ReviewModel }],
       limit: 10,
-      order: [['rating', 'DESC']]
+      order: [['rating', 'DESC']],
     })).map((c) => c.getFastSearchData());
+  }
+
+  async bindCompany(dto: BindCompanyDto) {
+    const company1 = await this.companyRepository.findByPk(dto.company1_id);
+    if (!company1) {
+      throw new CompanyNotfoundException([{
+        field: 'company',
+        errors: ['No company 1 with this id!'],
+      }]);
+    }
+    const company2 = await this.companyRepository.findByPk(dto.company2_id);
+    if (!company2) {
+      throw new CompanyNotfoundException([{
+        field: 'company',
+        errors: ['No company 2 with this id!'],
+      }]);
+    }
+    if (company1.related_companies.find((c) => c.id === company2.id) ||
+      company2.related_companies.find((c) => c.id === company1.id)) {
+      throw new ValidationException([{
+        field: 'company',
+        errors: ['Companies already bind'],
+      }]);
+    }
+    await this.companyRepository.update({ related_companies: [...company1.related_companies, company2] },
+      { where: { id: company1.id } });
+    await this.companyRepository.update({ related_companies: [...company2.related_companies, company1] },
+      { where: { id: company2.id } });
+
+    return { bind: true };
   }
 }

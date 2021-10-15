@@ -2,6 +2,16 @@ import { BelongsTo, BelongsToMany, Column, DataType, ForeignKey, HasMany, Model,
 import { ApiProperty } from '@nestjs/swagger';
 import { ReviewModel } from '../review/review.model';
 import { CityModel } from '../city/city.model';
+import { Type } from 'class-transformer';
+
+export class RelatedCompany {
+  name: string
+  id: number
+  city: string
+  type: CompanyType
+  rating: number
+  reviews_count: number
+}
 
 export interface CreateCompany {
   name: string
@@ -16,7 +26,8 @@ export interface CreateCompany {
   phone?: string
   email?: string,
   reviews_count?: number,
-  rating?: number
+  rating?: number,
+  related_companies: RelatedCompany[]
 }
 
 export type CompanyType = 'company' | 'brand' | 'site' | 'school'
@@ -103,6 +114,10 @@ export class CompanyModel extends Model<CompanyModel, CreateCompany> {
 
   @ForeignKey(() => CityModel)
   private city_id: number;
+
+  @Column({ type: DataType.ARRAY(DataType.JSON), unique: false, allowNull: false })
+  // @Type(() => RelatedCompany)
+  related_companies: RelatedCompany[]
 
   getSearchData() {
     return {

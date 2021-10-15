@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Injectable, Param, Post } from '@nestjs/common';
-import { CompanyDto, CompanyExistDto } from './dto/company.dto';
+import { BindCompanyDto, CompanyDto, CompanyExistDto } from './dto/company.dto';
 import { CompanyService } from './company.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CompanyModel } from './company.model';
@@ -43,5 +43,12 @@ export class CompanyController {
   @Post('/input-search')
   async inputSearch(@Body() dto: Omit<SearchCompanyDto, 'page'>) {
     return this.companyService.searchInput(dto)
+  }
+
+  @ApiOperation({summary: 'Bind company'})
+  @ApiResponse({ status: 202, type: CompanyModel })
+  @Post('/bind')
+  async bindCompany(@Body() dto: BindCompanyDto) {
+    return this.companyService.bindCompany(dto)
   }
 }
