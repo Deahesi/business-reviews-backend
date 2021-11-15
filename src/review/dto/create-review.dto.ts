@@ -14,27 +14,24 @@ import { CompanyModel, CompanyType } from '../../company/company.model';
 import { Type } from 'class-transformer';
 
 export class CreateReviewDto {
-  @IsString({message: 'This field must be string'})
+  @IsNumber({}, {message: 'This field must be string'})
   @IsNotEmpty({message: 'This field cannot be empty'})
-  readonly company_name: string
+  readonly company_id: number
 
   @IsString({message: 'This field must be string'})
   @IsNotEmpty({message: 'This field cannot be empty'})
-  @Length(15, 5000, {message: 'length of this field must be between 15 and 5000'})
+  @Length(100, 5000, {message: 'length of this field must be between 100 and 5000'})
   readonly review: string
 
-  @IsNumber({}, {message: 'This field must be Integer'})
+  @IsNumber({}, {message: 'This field must be integer'})
   @IsNotEmpty({message: 'This field cannot be empty'})
-  @Max(5, {message: 'This field cannot be more than 5'})
-  @Min(0, {message: 'This field cannot be more than 5'})
-  readonly rating: string
+  @Max(5, { message: 'Rating must be a number between 0 and 5' })
+  @Min(0, { message: 'Rating must be a number between 0 and 5' })
+  readonly rating: number
 
   @IsString({message: 'This field must be string'})
   @IsNotEmpty({message: 'This field cannot be empty'})
   readonly user_fullname: string
-
-  @IsOptional()
-  readonly image?: string
 }
 
 class CompanyDto {
@@ -88,28 +85,29 @@ class CompanyDto {
 export class CreateReviewWithCompanyDto {
   @IsString({message: 'This field must be string'})
   @IsNotEmpty({message: 'This field cannot be empty'})
-  readonly company_name: string
-
-  @IsString({message: 'This field must be string'})
-  @IsNotEmpty({message: 'This field cannot be empty'})
-  @Length(15, 5000, {message: 'length of this field must be between 15 and 5000'})
+  @Length(100, 5000, {message: 'length of this field must be between 100 and 5000'})
   readonly review: string
 
-  @IsNumber({}, {message: 'This field must be Integer'})
+  @IsNumber({}, {message: 'This field must be integer'})
   @IsNotEmpty({message: 'This field cannot be empty'})
-  @Max(5, {message: 'This field cannot be more than 5'})
-  @Min(0, {message: 'This field cannot be more than 5'})
-  readonly rating: string
+  @Max(5, { message: 'Rating must be a number between 0 and 5' })
+  @Min(0, { message: 'Rating must be a number between 0 and 5' })
+  readonly rating: number
 
   @IsString({message: 'This field must be string'})
   @IsNotEmpty({message: 'This field cannot be empty'})
   readonly user_fullname: string
 
-  @IsOptional()
-  readonly image?: string
-
   @IsDefined({message: 'This field cannot be empty'})
   @ValidateNested()
   @Type(() => CompanyDto)
   company: CompanyDto
+}
+
+export class UploadImageDto {
+  @IsNotEmpty({message: 'This field cannot be empty'})
+  readonly review_id: string //number (Multi-form, no types)
+
+  @IsNotEmpty({message: 'This field cannot be empty'})
+  readonly last: string //0 - 1 (Multi-form, no types)
 }

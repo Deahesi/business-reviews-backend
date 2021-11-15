@@ -21,10 +21,15 @@ export class CompanySearchService {
         name: company.name,
         city: company.city,
         entity: company.entity,
-        businessmanSurname: company.businessmanSurname,
+        businessman_fullname: company.businessman_fullname,
+        director_fullname: company.director_fullname,
+        director_position: company.director_position,
+        kpp: company.kpp,
         inn: company.inn,
         ogrn: company.ogrn,
         address: company.address,
+        tax_authority: company.tax_authority,
+        activity: company.activity,
         sites: company.sites,
         phones: company.phones,
         emails: company.emails
@@ -32,21 +37,37 @@ export class CompanySearchService {
     });
   }
 
-  async search(query: string) {
+  async search(query: string, page: number) {
+    // for (let i = 0; i <= 10000; i++) {
+    //   await this.elasticsearchService.deleteByQuery({
+    //     index: this.index,
+    //     body: {
+    //       query: {
+    //         match: {
+    //           id: i.toString()
+    //         }
+    //       }
+    //     }
+    //   });
+    // }
     const { body } = await this.elasticsearchService.search<CompanySearchResult>({
       index: this.index,
       body: {
         query: {
           multi_match: {
             query: query,
-            fields: ['id', 'name', 'city', 'entity', 'businessmanSurname', 'inn', 'ogrn', 'address', 'site', 'phone', 'email'],
-            lenient: true
+            fields: ['id', 'name', 'city', 'entity', 'businessman_fullname', 'director_fullname', 'director_position', 'kpp', 'inn', 'ogrn', 'address', 'tax_authority', 'activity', 'site', 'phone', 'email'],
+            lenient: true,
+            fuzziness: 1
           }
         }
-      }
+      },
+      from: (page - 1) * 10,
+      size: 10
     });
 
     const hits = body.hits.hits;
+    console.log(hits.map((item) => item._source));
     return hits.map((item) => item._source);
   }
 

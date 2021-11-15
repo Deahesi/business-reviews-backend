@@ -18,4 +18,8 @@ export class CityModel extends Model<CityModel, InitCity> {
 
   @HasMany(() => CompanyModel)
   city_companies: CompanyModel[]
+
+  getCity() {
+    return this.city
+  }
 }

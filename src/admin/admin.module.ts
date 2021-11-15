@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { CacheModule, Module } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 import { SequelizeModule } from '@nestjs/sequelize';
@@ -7,6 +7,8 @@ import { ReviewModule } from '../review/review.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { EmailModule } from '../email/email.module';
+import { CompanyModule } from '../company/company.module';
 
 @Module({
   providers: [AdminService, JwtStrategy],
@@ -18,7 +20,10 @@ import { JwtStrategy } from './strategies/jwt.strategy';
         secret: process.env.JWT_SECRET
       })
     }),
+    CacheModule.register(),
+    EmailModule,
     PassportModule,
+    CompanyModule,
     ReviewModule
   ],
 })

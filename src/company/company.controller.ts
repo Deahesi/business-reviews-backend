@@ -1,9 +1,34 @@
-import { Body, Controller, Get, Injectable, Param, Post } from '@nestjs/common';
-import { BindCompanyDto, CompanyDto, CompanyExistDto } from './dto/company.dto';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Injectable,
+  Param,
+  Patch,
+  Post, UploadedFile,
+  UseInterceptors, UsePipes
+} from '@nestjs/common';
+import {
+  BindCompanyDto,
+  CompanyDto,
+  CompanyExistDto,
+  UpdateCompanyDto,
+  UploadCompanyImageDto
+} from './dto/company.dto';
 import { CompanyService } from './company.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CompanyModel } from './company.model';
-import { SearchCompanyDto } from './dto/search-company.dto';
+import { FastSearchCompanyDto, SearchCompanyDto } from './dto/search-company.dto';
+import { Observable } from 'rxjs';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ValidateImagePipe } from '../pipes/validate-image.pipe';
+import { UploadImageDto } from '../review/dto/create-review.dto';
+
+class DadataAddressResponse {
+  result: ''
+}
 
 @ApiTags('Companies')
 @Controller('company')
@@ -13,27 +38,42 @@ export class CompanyController {
   @ApiOperation({summary: 'Create company'})
   @ApiResponse({ status: 201, type: CompanyModel })
   @Post('/create')
+  @HttpCode(HttpStatus.CREATED)
   async create(@Body() dto: CompanyDto) {
     return this.companyService.createCompany(dto)
+  }
+
+  @ApiOperation({summary: 'Add company image'})
+  @ApiResponse({ status: 201, type: CompanyModel })
+  @Post('/image')
+  @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(FileInterceptor('image'))
+  @UsePipes(ValidateImagePipe)
+  async pushImage(@Body() dto: UploadCompanyImageDto,
+                  @UploadedFile() image) {
+    return this.companyService.pushImageToCompany(dto, image)
   }
 
   @ApiOperation({summary: 'Get company by ID'})
   @ApiResponse({ status: 202, type: CompanyModel })
   @Get('/:id')
+  @HttpCode(HttpStatus.OK)
   async getCompanyById(@Param('id') id: number) {
-    return this.companyService.getCompanyById(id)
+    return this.companyService.getCompanyPageById(id)
   }
 
-  @ApiOperation({summary: 'Get company by ID'})
-  @ApiResponse({ status: 202, type: CompanyModel })
-  @Post('/exist')
-  async checkCompanyExist(@Body() dto: CompanyExistDto) {
-    return this.companyService.checkCompanyExist(dto)
-  }
+  // @ApiOperation({summary: 'Get company by ID'})
+  // @ApiResponse({ status: 202, type: CompanyModel })
+  // @Post('/exist')
+  // @HttpCode(HttpStatus.OK)
+  // async checkCompanyExist(@Body() dto: CompanyExistDto) {
+  //   return this.companyService.checkCompanyExist(dto)
+  // }
 
   @ApiOperation({summary: 'Search company'})
   @ApiResponse({ status: 202, type: CompanyModel })
   @Post('/search')
+  @HttpCode(HttpStatus.OK)
   async search(@Body() dto: SearchCompanyDto) {
     return this.companyService.searchByQuery(dto)
   }
@@ -41,14 +81,38 @@ export class CompanyController {
   @ApiOperation({summary: 'Fast search in input'})
   @ApiResponse({ status: 202, type: CompanyModel })
   @Post('/input-search')
-  async inputSearch(@Body() dto: Omit<SearchCompanyDto, 'page'>) {
+  @HttpCode(HttpStatus.OK)
+  async inputSearch(@Body() dto: FastSearchCompanyDto) {
     return this.companyService.searchInput(dto)
   }
 
   @ApiOperation({summary: 'Bind company'})
   @ApiResponse({ status: 202, type: CompanyModel })
   @Post('/bind')
+  @HttpCode(HttpStatus.CREATED)
   async bindCompany(@Body() dto: BindCompanyDto) {
     return this.companyService.bindCompany(dto)
   }
+
+  @ApiOperation({summary: 'Unbind company'})
+  @ApiResponse({ status: 202, type: CompanyModel })
+  @Post('/unbind')
+  @HttpCode(HttpStatus.CREATED)
+  async unbindCompany(@Body() dto: BindCompanyDto) {
+    return this.companyService.unbindCompany(dto)
+  }
+
+  // @ApiOperation({summary: 'Bind company'})
+  // @ApiResponse({ status: 202, type: CompanyModel })
+  // @Patch('/update')
+  // @HttpCode(HttpStatus.CREATED)
+  // async updateCompany(@Body() dto: UpdateCompanyDto) {
+  //   return this.companyService.updateCompany(dto)
+  // }
+
+  // @Post('/dadata/address-confirm')
+  // @HttpCode(HttpStatus.OK)
+  // async dadataAddress(@Body() dto: string[]): Promise<DadataAddressResponse[]> {
+  //   return this.companyService.getDadataAddress(dto)
+  // }
 }

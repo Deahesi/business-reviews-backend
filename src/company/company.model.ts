@@ -3,6 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { ReviewModel } from '../review/review.model';
 import { CityModel } from '../city/city.model';
 import { Type } from 'class-transformer';
+import { IsOptional, IsString } from 'class-validator';
 
 export class RelatedCompany {
   name: string
@@ -18,15 +19,23 @@ export interface CreateCompany {
   city: string
   type: CompanyType
   entity?: string
-  businessmanSurname?: string
+  businessman_fullname?: string
+  director_fullname?: string
+  director_position?: string
+  kpp?: string
   inn?: string
   ogrn?: string
   address?: string
   site?: string
   phone?: string
-  email?: string,
-  reviews_count?: number,
+  email?: string
+  tax_authority?: string
+  activity?: string
+  reviews_count?: number
   rating?: number,
+  createdAt?: string
+  capital?: number
+  director_date?: string
   related_companies: RelatedCompany[]
 }
 
@@ -45,7 +54,7 @@ export class CompanyModel extends Model<CompanyModel, CreateCompany> {
   id: number;
 
   @ApiProperty({ example: 'CompanyName', description: 'Company name' })
-  @Column({ type: DataType.STRING, unique: true, allowNull: false })
+  @Column({ type: DataType.STRING(1000), unique: false, allowNull: false })
   name: string;
 
   @BelongsTo(() => CityModel)
@@ -61,23 +70,35 @@ export class CompanyModel extends Model<CompanyModel, CreateCompany> {
   type: CompanyType;
 
   @ApiProperty({ example: 'ООО “Единая Россия”', description: 'Company entity' })
-  @Column({ type: DataType.STRING, unique: false, allowNull: true })
+  @Column({ type: DataType.STRING(1500), unique: false, allowNull: true })
   entity?: string;
 
-  @ApiProperty({ example: 'Иванов', description: 'Company businessman surname' })
+  @ApiProperty({ example: 'ИП Иванов', description: 'Company businessman fullname' })
   @Column({ type: DataType.STRING, unique: false, allowNull: true })
-  businessmanSurname?: string;
+  businessman_fullname?: string;
+
+  @ApiProperty({ example: 'Иванов', description: 'Company director full' })
+  @Column({ type: DataType.STRING, unique: false, allowNull: true })
+  director_fullname?: string;
+
+  @ApiProperty({ example: 'Директор', description: 'Company director position' })
+  @Column({ type: DataType.STRING, unique: false, allowNull: true })
+  director_position?: string;
 
   @ApiProperty({ example: '100000000000', description: 'Company tax identification number ИНН' })
-  @Column({ type: DataType.STRING, unique: true, allowNull: true })
+  @Column({ type: DataType.STRING, unique: false, allowNull: true })
   inn?: string;
 
+  @ApiProperty({ example: '100000000000', description: 'Company identification number КПП' })
+  @Column({ type: DataType.STRING, unique: false, allowNull: true })
+  kpp?: string;
+
   @ApiProperty({ example: '1000000000000', description: 'Company ogrn ОГРН' })
-  @Column({ type: DataType.STRING, unique: true, allowNull: true })
+  @Column({ type: DataType.STRING, unique: false, allowNull: true })
   ogrn?: string;
 
   @ApiProperty({ example: 'New York st. Wall', description: 'Company address' })
-  @Column({ type: DataType.STRING, unique: false, allowNull: true })
+  @Column({ type: DataType.STRING(1000), unique: false, allowNull: true })
   address?: string;
 
   @ApiProperty({ example: 'https://site.site', description: 'Company site' })
@@ -98,6 +119,14 @@ export class CompanyModel extends Model<CompanyModel, CreateCompany> {
   })
   emails?: string[];
 
+  @ApiProperty({ example: '', description: 'Company tax authority' })
+  @Column({ type: DataType.STRING(1000), unique: false, allowNull: true })
+  tax_authority?: string;
+
+  @ApiProperty({ example: '', description: 'Company activity' })
+  @Column({ type: DataType.STRING(1000), unique: false, allowNull: true })
+  activity?: string;
+
   @HasMany(() => ReviewModel)
   company_reviews: ReviewModel[]
 
@@ -111,6 +140,18 @@ export class CompanyModel extends Model<CompanyModel, CreateCompany> {
       max: 5
     } })
   rating: number
+
+  @ApiProperty({ example: 3.7, description: 'Company capital' })
+  @Column({ type: DataType.FLOAT, unique: false, allowNull: true })
+  capital?: number
+
+  @ApiProperty({ example: '', description: 'Company director pick date' })
+  @Column({ type: DataType.STRING, unique: false, allowNull: true })
+  director_date?: string
+
+  @ApiProperty({ example: '', description: 'Company image' })
+  @Column({ type: DataType.STRING, unique: false, allowNull: true })
+  image: string
 
   @ForeignKey(() => CityModel)
   private city_id: number;
@@ -126,6 +167,9 @@ export class CompanyModel extends Model<CompanyModel, CreateCompany> {
       city: this.city,
       rating: this.rating,
       reviews_count: this.reviews_count,
+      inn: this.inn,
+      image: this.image,
+      address: this.address,
       type: this.type
     }
   }
@@ -136,5 +180,21 @@ export class CompanyModel extends Model<CompanyModel, CreateCompany> {
       name: this.name,
       city: this.city
     }
+  }
+
+  getAdminSearchData() {
+    return this.company_reviews.map((r) => ({
+      id: r.id,
+      createdAt: r.createdAt,
+      rating: r.rating,
+      company_rating: this.rating,
+      company_name: this.name,
+      company_id: this.id,
+      images: r.images,
+      company_address: this.address,
+      company_type: this.type,
+      company_inn: this.inn,
+      archive: r.archive
+    }))
   }
 }

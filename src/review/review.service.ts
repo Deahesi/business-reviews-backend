@@ -1,61 +1,64 @@
-import { Injectable, UsePipes } from '@nestjs/common';
+import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { ReviewModel } from './review.model';
-import { CreateReviewDto, CreateReviewWithCompanyDto } from './dto/create-review.dto';
+import { CreateReviewDto, CreateReviewWithCompanyDto, UploadImageDto } from './dto/create-review.dto';
 import { CompanyService } from '../company/company.service';
 import { CompanyModel } from '../company/company.model';
 import { CompanyNotfoundException } from '../exceptions/company-notfound.exception';
 import { ValidationException } from '../exceptions/validation.exception';
+import { FilesService } from '../files/files.service';
+import { Cache } from 'cache-manager';
+import { log } from 'util';
 
 @Injectable()
 export class ReviewService {
   constructor(@InjectModel(ReviewModel) private reviewRepository: typeof ReviewModel,
-              private companyService: CompanyService) {
+              private companyService: CompanyService,
+              private filesService: FilesService,
+              @Inject(CACHE_MANAGER) private cacheManager: Cache) {
   }
 
   async createReview(dto: CreateReviewDto) {
     let company: CompanyModel
-    company = await this.companyService.getCompanyByName(dto.company_name, true)
+    company = await this.companyService.getCompanyById(dto.company_id)
     if (!company) {
       throw new CompanyNotfoundException([{
         field: 'company',
-        errors: ['No company with this name!']
+        errors: ['No company with this id!']
       }])
     }
-    const review = await this.reviewRepository.create({ ...dto, company_id: company.id })
-    const company_reviews = await company.$get('company_reviews')
-    let company_rating = 0
-    for (const r of company_reviews) company_rating += r.rating
-    company_rating = company_rating / company_reviews.length
-    await company.update({
-      reviews_count: company_reviews.length,
-      rating: company_rating
-    })
 
-    return review
+    const review = await this.reviewRepository.create({ ...dto, images: [], company_id: company.id, archive: false, company_name: company.name })
+
+    await this.cacheManager.set('image:' + review.id, true, { ttl: 600 })
+
+    await this.companyService.countRatingAndReviews(company.id)
+
+
+    return review.getPublicData()
   }
 
   async findById(id: number) {
     const review = await this.reviewRepository.findByPk(id)
-    if (!review) {
+    if (!review || review.archive === true) {
       throw new CompanyNotfoundException([{
         field: 'id',
         errors: ['No reviews with this id']
       }])
     }
-    return review
+    return review.getPublicData()
   }
 
   async getPageData(id: number) {
     const review = await this.reviewRepository.findByPk(id)
-    if (!review) {
+    if (!review || review.archive === true) {
       throw new CompanyNotfoundException([{
         field: 'id',
         errors: ['No reviews with this id']
       }])
     }
-    const reviews = (await this.companyService.getCompanyById(review.company_id)).company_reviews
-    return { ...review.toJSON(), other_reviews: [...reviews.splice(reviews.findIndex((r) => r.id === review.id), 1)] }
+    const company = await this.companyService.getCompanyById(review.company_id)
+    return review.getFullPublicData(company)
   }
 
   async getLastReviews(page_number: number) {
@@ -65,13 +68,13 @@ export class ReviewService {
         errors: ['Invalid page number']
       }])
     }
-    const reviews = await this.reviewRepository.findAll({ limit: 5, offset: (page_number - 1) * 5, order: [['createdAt', 'DESC']], include: [{ model: CompanyModel }] })
-    return reviews
+    const reviews = await this.reviewRepository.findAll({ where: {archive: false}, limit: 5, offset: (page_number - 1) * 5, order: [['createdAt', 'DESC']], include: [{ model: CompanyModel }] })
+    return reviews.map((r) => r.getPublicData(r.company))
   }
 
   async createReviewWithCompany(dto: CreateReviewWithCompanyDto) {
     const company = await this.companyService.createCompany({ ...dto.company })
-    const review = await this.createReview(dto)
+    const review = await this.createReview({ ...dto, company_id: company.id })
     return review
   }
 
@@ -83,7 +86,36 @@ export class ReviewService {
         errors: ['No companies with this id']
       }])
     }
-    const reviews = await this.reviewRepository.findAll({ where: { company_id: id } })
-    return reviews
+    const reviews = await this.reviewRepository.findAll({ where: { company_id: id, archive: false } })
+    return reviews.map((r) => r.getPublicData())
+  }
+
+  async uploadImage(dto: UploadImageDto, image: any) {
+    const id = parseInt(dto.review_id)
+    const review = await this.reviewRepository.findByPk(id)
+    if (!review || review.archive === true) {
+      throw new CompanyNotfoundException([{
+        field: 'id',
+        errors: ['No reviews with this id']
+      }])
+    }
+    const allowToUpload = await this.cacheManager.get('image:' + review.id)
+    if (!allowToUpload || review.images.length > 4) throw new ValidationException([
+      {
+        field: 'image',
+        errors: [!allowToUpload ? 'You are not allowed to upload images' : 'Images count cannot be bigger than 3']
+      }
+    ])
+
+    if (Boolean(parseInt(dto.last)) || review.images.length > 4) await this.cacheManager.del('image:' + review.id)
+
+    const imageUrl = await this.filesService.createFile(image)
+    await review.update({
+      images: [...review.images, imageUrl]
+    })
+
+    return {
+      uploaded: true
+    }
   }
 }
