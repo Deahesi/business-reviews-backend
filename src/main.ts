@@ -6,7 +6,6 @@ import { runInCluster } from './utils/runInCluster';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api')
 
   const config = new DocumentBuilder()
     .setTitle('Business Reviews backend endpoints')
