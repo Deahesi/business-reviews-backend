@@ -9,7 +9,7 @@ export class FilesService {
   async createFile(file) {
     try {
       const fileName = uuid.v4() + '.jpg'
-      const filePath = process.env.NODE_ENV === 'development' ? path.resolve(__dirname, '..', 'static') : '/etc/www/static/'
+      const filePath = process.env.NODE_ENV === 'development' ? path.resolve(__dirname, '..', 'static') : '/var/www/static/'
       if (!fs.existsSync(filePath)) {
         fs.mkdirSync(filePath, {recursive: true})
       }
@@ -22,7 +22,7 @@ export class FilesService {
 
   async deleteFile(image: string) {
     try {
-      const filePath = process.env.NODE_ENV === 'development' ? path.resolve(__dirname, '..', 'static', image) : '/etc/www/static/' + image
+      const filePath = process.env.NODE_ENV === 'development' ? path.resolve(__dirname, '..', 'static', image) : '/var/www/static/' + image
       if (!fs.existsSync(filePath)) {
         throw new ValidationException([{
           field: 'file',
