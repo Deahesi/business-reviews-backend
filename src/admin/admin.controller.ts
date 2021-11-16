@@ -25,8 +25,10 @@ import { ReviewAdminService } from '../review/review.admin.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ValidateImagePipe } from '../pipes/validate-image.pipe';
 import { UploadImageDto } from '../review/dto/create-review.dto';
-import { CompanyDto, UploadCompanyImageDto } from '../company/dto/company.dto';
+import { BindCompanyDto, CompanyDto, UploadCompanyImageDto } from '../company/dto/company.dto';
 import { CompanyAdminDto } from './dto/company.dto';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { CompanyModel } from '../company/company.model';
 
 @Controller('admin')
 export class AdminController {
@@ -89,6 +91,15 @@ export class AdminController {
                     @UploadedFile() image) {
     return await this.adminService.addImageToReview(dto, image);
 
+  }
+
+  @ApiOperation({summary: 'Unbind company'})
+  @ApiResponse({ status: 202, type: CompanyModel })
+  @Post('/unbind')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  async unbindCompany(@Body() dto: BindCompanyDto) {
+    return this.adminService.unbindCompany(dto)
   }
 
   @Post('review/delete-images')

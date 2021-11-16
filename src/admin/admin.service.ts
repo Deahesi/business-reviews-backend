@@ -23,7 +23,7 @@ import { SearchAdminDto } from './dto/search-admin.dto';
 import { UploadImageDto } from '../review/dto/create-review.dto';
 import { CompanyAdminService } from '../company/company.admin.service';
 import { CompanyService } from '../company/company.service';
-import { CompanyDto, UploadCompanyImageDto } from '../company/dto/company.dto';
+import { BindCompanyDto, CompanyDto, UploadCompanyImageDto } from '../company/dto/company.dto';
 import { CompanyAdminDto } from './dto/company.dto';
 
 @Injectable()
@@ -83,8 +83,8 @@ export class AdminService {
 
   async deleteReview(dto: ChangeDataDtoId) {
     const review = await this.reviewAdminService.findByIdAdmin(dto.id);
-    await this.companyService.countRatingAndReviews(review.company_id)
     await review.destroy();
+    await this.companyService.countRatingAndReviews(review.company_id)
     return;
   }
 
@@ -245,5 +245,9 @@ export class AdminService {
 
   async deleteCompanyImage(dto: UploadCompanyImageDto) {
     return this.companyAdminService.deleteImageFromCompanyByAdmin(dto)
+  }
+
+  async unbindCompany(dto: BindCompanyDto) {
+    return this.companyService.unbindCompany(dto)
   }
 }

@@ -221,16 +221,23 @@ export class CompanyService {
         errors: ['No company 2 with this id!']
       }]);
     }
-    if (!company1.related_companies.find((c) => c.id === company2.id) ||
-      !company2.related_companies.find((c) => c.id === company1.id)) {
+    if (!company1.related_companies.find((c) => c.id === company2.id)) {
       throw new ValidationException([{
         field: 'company',
         errors: ['Companies is not bound']
       }]);
     }
-    await company1.update({ related_companies: company1.related_companies.splice(company1.related_companies.findIndex((c) => c.id === company2.id), 1)});
+    console.log(company1.related_companies.splice(company1.related_companies.findIndex((c) => c.id === company2.id), 1));
+    await this.companyRepository.update({ related_companies: company1.related_companies.splice(company1.related_companies.findIndex((c) => c.id === company2.id), 1)}, { where: {
+        id: company1.id
+    } });
 
-    await company2.update({ related_companies: company2.related_companies.splice(company2.related_companies.findIndex((c) => c.id === company1.id), 1)});
+
+    await this.companyRepository.update({ related_companies: company2.related_companies.splice(company2.related_companies.findIndex((c) => c.id === company1.id), 1)}, {
+      where: {
+        id: company2.id
+      }
+    });
 
     return { unbind: true };
   }

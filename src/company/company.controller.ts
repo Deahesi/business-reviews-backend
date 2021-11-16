@@ -94,14 +94,6 @@ export class CompanyController {
     return this.companyService.bindCompany(dto)
   }
 
-  @ApiOperation({summary: 'Unbind company'})
-  @ApiResponse({ status: 202, type: CompanyModel })
-  @Post('/unbind')
-  @HttpCode(HttpStatus.CREATED)
-  async unbindCompany(@Body() dto: BindCompanyDto) {
-    return this.companyService.unbindCompany(dto)
-  }
-
   // @ApiOperation({summary: 'Bind company'})
   // @ApiResponse({ status: 202, type: CompanyModel })
   // @Patch('/update')

@@ -71,9 +71,7 @@ export class FnsService {
         const jsonObj = parser.parse(encoded, xmlOptions);
         for (const ul of jsonObj['EGRUL']['СвЮЛ']) {
           if (Array.isArray(ul)) {
-            // for (const ooo of ul) {
-            //   await this.createCompany(ooo)
-            // }
+
           } else {
             const ooo = ul;
             await this.createCompany(ooo);
@@ -89,8 +87,6 @@ export class FnsService {
   }
 
   private async createCompany(ooo) {
-    console.log(ooo);
-
     const addressType = ooo['СвАдресЮЛ']['АдресРФ'] ? 'АдресРФ' : 'СвАдрЮЛФИАС';
 
     const oooCity =
