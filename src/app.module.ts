@@ -40,12 +40,12 @@ import { FnsModule } from './fns/fns.module';
       })
     }),
     SearchModule,
-    ReviewModule,
     CityModule,
+    FilesModule,
     CompanyModule,
+    ReviewModule,
     AdminModule,
     EmailModule,
-    FilesModule,
     FnsModule
   ],
   controllers: [],
