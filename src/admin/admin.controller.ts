@@ -143,7 +143,7 @@ export class AdminController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete('archive-review/several')
+  @Patch('archive-review/several')
   async archiveSeveralReviews(@Body() dto: ChangeDataDtoSeveralId, @ModeratorData() moderator: ModeratorModel) {
     return await this.adminService.archiveSeveralReview(dto);
   }

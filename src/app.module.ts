@@ -12,15 +12,20 @@ import { ModeratorModel } from './admin/moderator.model';
 import { SearchModule } from './search/search.module';
 import { EmailModule } from './email/email.module';
 import { FilesModule } from './files/files.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import * as path from 'path';
+import * as redisStore from 'cache-manager-redis-store';
 import { ScheduleModule } from '@nestjs/schedule';
 import { FnsModule } from './fns/fns.module';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    CacheModule.register(),
+    CacheModule.register({
+        store: redisStore,
+        // Store-specific configuration:
+        host: 'localhost',
+        port: 6379,
+        isGlobal: true
+    }),
     ConfigModule.forRoot({
       envFilePath: `.${process.env.NODE_ENV}.env`
     }),
