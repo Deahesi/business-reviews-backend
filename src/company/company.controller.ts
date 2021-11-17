@@ -40,7 +40,7 @@ export class CompanyController {
   @Post('/create')
   @HttpCode(HttpStatus.CREATED)
   async create(@Body() dto: CompanyDto) {
-    return this.companyService.createCompany(dto)
+    return await this.companyService.createCompany(dto)
   }
 
   @ApiOperation({summary: 'Add company image'})
@@ -51,7 +51,7 @@ export class CompanyController {
   @UsePipes(ValidateImagePipe)
   async pushImage(@Body() dto: UploadCompanyImageDto,
                   @UploadedFile() image) {
-    return this.companyService.pushImageToCompany(dto, image)
+    return await this.companyService.pushImageToCompany(dto, image)
   }
 
   @ApiOperation({summary: 'Get company by ID'})
@@ -59,7 +59,7 @@ export class CompanyController {
   @Get('/:id')
   @HttpCode(HttpStatus.OK)
   async getCompanyById(@Param('id') id: number) {
-    return this.companyService.getCompanyPageById(id)
+    return await this.companyService.getCompanyPageById(id)
   }
 
   // @ApiOperation({summary: 'Get company by ID'})
@@ -75,7 +75,7 @@ export class CompanyController {
   @Post('/search')
   @HttpCode(HttpStatus.OK)
   async search(@Body() dto: SearchCompanyDto) {
-    return this.companyService.searchByQuery(dto)
+    return await this.companyService.searchByQuery(dto)
   }
 
   @ApiOperation({summary: 'Fast search in input'})
@@ -83,7 +83,7 @@ export class CompanyController {
   @Post('/input-search')
   @HttpCode(HttpStatus.OK)
   async inputSearch(@Body() dto: FastSearchCompanyDto) {
-    return this.companyService.searchInput(dto)
+    return await this.companyService.searchInput(dto)
   }
 
   @ApiOperation({summary: 'Bind company'})
@@ -91,7 +91,7 @@ export class CompanyController {
   @Post('/bind')
   @HttpCode(HttpStatus.CREATED)
   async bindCompany(@Body() dto: BindCompanyDto) {
-    return this.companyService.bindCompany(dto)
+    return await this.companyService.bindCompany(dto)
   }
 
   // @ApiOperation({summary: 'Bind company'})
