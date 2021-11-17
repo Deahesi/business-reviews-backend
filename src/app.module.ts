@@ -22,8 +22,8 @@ import { FnsModule } from './fns/fns.module';
     CacheModule.register({
         store: redisStore,
         // Store-specific configuration:
-        host: 'localhost',
-        port: 6379,
+        host: process.env.REDIS_HOST,
+        port: parseInt(process.env.REDIS_PORT),
         isGlobal: true
     }),
     ConfigModule.forRoot({

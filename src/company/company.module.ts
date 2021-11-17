@@ -14,7 +14,6 @@ import { CompanyAdminService } from './company.admin.service';
 
 @Module({
   imports: [
-    CacheModule.register(),
     FilesModule,
     HttpModule,
     SearchModule,

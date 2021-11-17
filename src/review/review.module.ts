@@ -11,7 +11,6 @@ import { ReviewAdminService } from './review.admin.service';
 @Module({
   imports: [
     SequelizeModule.forFeature([ReviewModel, CompanyModel]),
-    CacheModule.register(),
     FilesModule,
     CompanyModule
   ],
