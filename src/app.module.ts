@@ -16,6 +16,7 @@ import * as redisStore from 'cache-manager-redis-store';
 import { ScheduleModule } from '@nestjs/schedule';
 import { FnsModule } from './fns/fns.module';
 
+//TODO: Вернуть как было
 @Module({
   imports: [
     ScheduleModule.forRoot(),

@@ -12,10 +12,25 @@ export class FnsController {
     return await this.fnsService.startCompaniesDownload();
   }
 
+  @Cron('5 2 * * *')
+  async startCompaniesUpdate() {
+    return await this.fnsService.startCompaniesUpdate();
+  }
+
+
+
+
   @Get('')
   async startCompaniesDownloadEndpoint() {
     if (process.env.NODE_ENV === 'development') {
       return await this.fnsService.startCompaniesDownload();
+    }
+  }
+
+  @Get('update')
+  async startCompaniesUpdateEndpoint() {
+    if (process.env.NODE_ENV === 'development') {
+      return await this.fnsService.startCompaniesUpdate();
     }
   }
 }

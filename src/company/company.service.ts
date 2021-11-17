@@ -62,7 +62,23 @@ export class CompanyService {
     await this.cacheManager.set('image-company:' + company.id, true, { ttl: 600 })
     await this.companySearchService.indexCompany(company);
     await this.cityService.addCompanyToCity(company);
-    return company;
+    return company ?? '';
+  }
+
+  async updateCompanyOOO(dto: CompanyDto) {
+    await this.cityService.getCityOrCreate(dto.city.toUpperCase())
+    const [company, created] = await this.companyRepository.findOrCreate({
+      where: { name: dto.name, city: dto.city, type: dto.type, inn: dto.inn },
+      defaults: { ...dto,  city: dto.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] }
+    })
+    if (created) {
+      await this.cacheManager.set('image-company:' + company.id, true, { ttl: 600 })
+      await this.companySearchService.indexCompany(company);
+      await this.cityService.addCompanyToCity(company);
+    } else {
+      await this.companySearchService.updateCompany(company)
+    }
+    return company ?? ''
   }
 
 

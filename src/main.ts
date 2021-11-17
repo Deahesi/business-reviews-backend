@@ -18,7 +18,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe())
 
   app.enableCors({
-    origin: process.env.NODE_ENV === 'production' ? 'https://бизнес-отзывы.рф' : 'http://localhost:3000',
+    origin: process.env.NODE_ENV === 'production' ? ['https://бизнес-отзывы.рф', 'https://176.99.12.116/', 'http://бизнес-отзывы.рф', 'http://176.99.12.116/'] : 'http://localhost:3000',
     credentials: true
   })
   await app.listen(7000);

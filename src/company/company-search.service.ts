@@ -12,29 +12,55 @@ export class CompanySearchService {
 
   index = 'company';
 
+  private toIndexData(c) {
+    const company = {
+      id: c.id.toString(),
+      name: c.name,
+      city: c.city,
+      entity: c.entity,
+      businessman_fullname: c.businessman_fullname,
+      director_fullname: c.director_fullname,
+      director_position: c.director_position,
+      kpp: c.kpp,
+      inn: c.inn,
+      ogrn: c.ogrn,
+      address: c.address,
+      tax_authority: c.tax_authority,
+      activity: c.activity,
+      sites: c.sites,
+      phones: c.phones,
+      emails: c.emails
+    }
+
+    return company
+  }
 
   async indexCompany(company: CompanyModel) {
     return this.elasticsearchService.index<CompanySearchResult, CompanySearchBody>({
       index: this.index,
-      body: {
-        id: company.id.toString(),
-        name: company.name,
-        city: company.city,
-        entity: company.entity,
-        businessman_fullname: company.businessman_fullname,
-        director_fullname: company.director_fullname,
-        director_position: company.director_position,
-        kpp: company.kpp,
-        inn: company.inn,
-        ogrn: company.ogrn,
-        address: company.address,
-        tax_authority: company.tax_authority,
-        activity: company.activity,
-        sites: company.sites,
-        phones: company.phones,
-        emails: company.emails
-      }
+      body: this.toIndexData(company)
     });
+  }
+
+  async updateCompany(company: CompanyModel) {
+    await this.elasticsearchService.updateByQuery({
+      index: this.index,
+      body: {
+        script: {
+          lang: 'painless',
+          source: 'ctx._source = params.company',
+          params: {
+            company: this.toIndexData(company)
+          }
+        },
+        query: {
+          match: {
+            id: company.id.toString()
+          }
+        }
+      }
+    })
+    await this.indexCompany(company)
   }
 
   async search(query: string, page: number) {
