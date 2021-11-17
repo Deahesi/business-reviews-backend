@@ -131,11 +131,11 @@ export class CompanyModel extends Model<CompanyModel, CreateCompany> {
   company_reviews: ReviewModel[]
 
   @ApiProperty({ example: 15, description: 'Reviews count' })
-  @Column({ type: DataType.INTEGER, unique: false, allowNull: false })
+  @Column({ type: DataType.INTEGER, unique: false, allowNull: true })
   reviews_count: number
 
   @ApiProperty({ example: 3.7, description: 'Company rating' })
-  @Column({ type: DataType.FLOAT, unique: false, allowNull: false, validate: {
+  @Column({ type: DataType.FLOAT, unique: false, allowNull: true, validate: {
       min: 0,
       max: 5
     } })

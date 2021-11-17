@@ -67,6 +67,7 @@ export class CompanyService {
 
 
   async createCompany(dto: CompanyDto) {
+    console.log(dto);
     let company: CompanyModel;
     await this.cityService.getCity(dto.city.toUpperCase())
     company = await this.companyRepository.create({ ...dto, city: dto.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] });
