@@ -94,13 +94,13 @@ export class CompanyController {
     return await this.companyService.bindCompany(dto)
   }
 
-  // @ApiOperation({summary: 'Bind company'})
-  // @ApiResponse({ status: 202, type: CompanyModel })
-  // @Patch('/update')
-  // @HttpCode(HttpStatus.CREATED)
-  // async updateCompany(@Body() dto: UpdateCompanyDto) {
-  //   return this.companyService.updateCompany(dto)
-  // }
+  @ApiOperation({summary: 'Update company'})
+  @ApiResponse({ status: 202, type: CompanyModel })
+  @Patch('/update')
+  @HttpCode(HttpStatus.CREATED)
+  async updateCompany(@Body() dto: UpdateCompanyDto) {
+    return this.companyService.updateCompany(dto)
+  }
 
   // @Post('/dadata/address-confirm')
   // @HttpCode(HttpStatus.OK)

@@ -1,7 +1,7 @@
 import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { ModeratorModel } from './moderator.model';
-import { CreateModeratorDto } from './dto/moderator.dto';
+import { CreateModeratorDto, DeleteModeratorDto } from './dto/moderator.dto';
 import { AlreadyRootException } from '../exceptions/already-root.exception';
 import { compare, genSalt, hash } from 'bcryptjs';
 import { EmailAlreadyExist } from '../exceptions/unique-email.exception';
@@ -79,6 +79,32 @@ export class AdminService {
     const user = await this.moderatorRepository.create({ ...dto, root: false });
     const payload = { email: user.email, moderator_name: user.moderator_name, id: user.id, root: user.root };
     return { ...user.getUserPublicData(), auth_token: await this.jwtService.signAsync(payload) };
+  }
+
+  async deleteModerator(dto: DeleteModeratorDto, moderator: ModeratorModel) {
+    const root = await this.moderatorRepository.findOne({ where: { email: moderator.email } });
+    if (!root) {
+      throw new UnauthorizedException([{
+        field: 'auth',
+        errors: ['Unauthorized']
+      }]);
+    }
+    if (!root.root) {
+      throw new UnauthorizedException([{
+        field: 'root',
+        errors: ['You have no permissions to make that']
+      }]);
+    }
+
+    const findEmail = await this.moderatorRepository.findOne({ where: { email: dto.email } });
+    if (!findEmail || findEmail.email === root.email) {
+      throw new EmailAlreadyExist([{
+        field: 'email',
+        errors: ['Email didn\'t registered']
+      }]);
+    }
+    await findEmail.destroy()
+    return
   }
 
   async deleteReview(dto: ChangeDataDtoId) {

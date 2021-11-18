@@ -244,13 +244,15 @@ export class CompanyService {
         errors: ['Companies is not bound']
       }]);
     }
-    console.log(company1.related_companies.splice(company1.related_companies.findIndex((c) => c.id === company2.id), 1));
-    await this.companyRepository.update({ related_companies: company1.related_companies.splice(company1.related_companies.findIndex((c) => c.id === company2.id), 1)}, { where: {
+    company1.related_companies.splice(company1.related_companies.findIndex((c) => c.id === company2.id), 1)
+    company2.related_companies.splice(company2.related_companies.findIndex((c) => c.id === company1.id), 1)
+    const company1Related = JSON.parse(JSON.stringify(company1.related_companies))
+    const company2Related = JSON.parse(JSON.stringify(company2.related_companies))
+    await this.companyRepository.update({ related_companies: company1Related}, { where: {
         id: company1.id
     } });
 
-
-    await this.companyRepository.update({ related_companies: company2.related_companies.splice(company2.related_companies.findIndex((c) => c.id === company1.id), 1)}, {
+    await this.companyRepository.update({ related_companies: company2Related}, {
       where: {
         id: company2.id
       }
@@ -260,7 +262,7 @@ export class CompanyService {
   }
 
   async updateCompany(dto: UpdateCompanyDto) {
-    const company = await this.companyRepository.findByPk(dto.company_id);
+    const company = await this.companyRepository.findByPk(dto.company_id, { include: [{ model: ReviewModel }] });
     if (!company) {
       throw new CompanyNotfoundException([{
         field: 'company',

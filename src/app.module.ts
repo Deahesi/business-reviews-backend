@@ -21,10 +21,10 @@ import { FnsModule } from './fns/fns.module';
   imports: [
     ScheduleModule.forRoot(),
     CacheModule.register({
-        store: redisStore,
-        // Store-specific configuration:
-        host: process.env.REDIS_HOST,
-        port: parseInt(process.env.REDIS_PORT),
+        // store: redisStore,
+        // // Store-specific configuration:
+        // host: process.env.REDIS_HOST,
+        // port: parseInt(process.env.REDIS_PORT),
         isGlobal: true
     }),
     ConfigModule.forRoot({

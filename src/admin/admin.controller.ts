@@ -10,7 +10,7 @@ import {
   UseInterceptors,
   UsePipes
 } from '@nestjs/common';
-import { CreateModeratorDto } from './dto/moderator.dto';
+import { CreateModeratorDto, DeleteModeratorDto } from './dto/moderator.dto';
 import { AdminService } from './admin.service';
 import { CreateRootModeratorDto } from './dto/moderator-root.dto';
 import { ChangeDataDtoId, ChangeDataDtoSeveralId } from './dto/delete-review.dto';
@@ -44,6 +44,12 @@ export class AdminController {
   @Post('register')
   async registerUser(@Body() dto: CreateModeratorDto, @ModeratorData() moderator: ModeratorModel) {
     return await this.adminService.createModerator(dto, moderator);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('delete-moderator')
+  async deleteUser(@Body() dto: DeleteModeratorDto, @ModeratorData() moderator: ModeratorModel) {
+    return await this.adminService.deleteModerator(dto, moderator);
   }
 
   @UseGuards(JwtAuthGuard)
