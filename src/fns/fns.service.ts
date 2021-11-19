@@ -87,6 +87,7 @@ export class FnsService {
   }
 
   async startCompaniesUpdate() {
+    console.log(`https://ftp.egrul.nalog.ru/?dir=EGRUL_406/${new Date(Date.now() - 172800000).toLocaleDateString()}`);
     const html = (await this.httpService.get(`https://ftp.egrul.nalog.ru/?dir=EGRUL_406/${new Date(Date.now() - 172800000).toLocaleDateString()}`, {
       httpsAgent
     }).toPromise()).data;
