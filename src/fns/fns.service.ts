@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import * as https from 'https';
 import * as fs from 'fs';
@@ -7,6 +7,7 @@ import * as AdmZip from 'adm-zip';
 import { JSDOM } from 'jsdom';
 import { CompanyService } from '../company/company.service';
 import { CompanyDto } from '../company/dto/company.dto';
+import { Cache } from 'cache-manager';
 
 const iconv = require('iconv-lite');
 const parser = require('fast-xml-parser');
@@ -27,7 +28,8 @@ const httpsAgent = new https.Agent({
 @Injectable()
 export class FnsService {
   constructor(private readonly httpService: HttpService,
-              private readonly companyService: CompanyService) {
+              private readonly companyService: CompanyService,
+              @Inject(CACHE_MANAGER) private cacheManager: Cache) {
   }
 
   async startCompaniesDownload() {
@@ -38,8 +40,11 @@ export class FnsService {
     let links = document.querySelectorAll('.clearfix');
 
 
-    for (let i = 1; i < links.length; i++) {
+
+    const loadStart: number = await this.cacheManager.get('fns-zip-entry') ?? 1
+    for (let i: number = loadStart; i < links.length; i++) {
       console.log(`https://ftp.egrul.nalog.ru/${ links[i].getAttribute('href') }`);
+      await this.cacheManager.set('fns-zip-entry', i)
       const response = (await this.httpService.get(`https://ftp.egrul.nalog.ru/${ links[i].getAttribute('href') }`, {
         httpsAgent,
         responseType: 'arraybuffer',
@@ -66,8 +71,13 @@ export class FnsService {
       const zip = new AdmZip(filePath);
       const zipEntries = zip.getEntries();
 
-      for (const entry of zipEntries) {
-        const encoded = iconv.encode(iconv.decode(entry.getData(), 'win1251'), 'utf8').toString('utf8');
+
+      const entryStart: number = await this.cacheManager.get('fns-entry') ?? 0
+      for (let entry: number = entryStart; entry < zipEntries.length; entry++) {
+        await this.cacheManager.set('fns-entry', entry)
+
+
+        const encoded = iconv.encode(iconv.decode(zipEntries[entry].getData(), 'win1251'), 'utf8').toString('utf8');
         const jsonObj = parser.parse(encoded, xmlOptions);
         for (const ul of jsonObj['EGRUL']['СвЮЛ']) {
           if (Array.isArray(ul)) {
@@ -78,10 +88,11 @@ export class FnsService {
           }
         }
       }
+      await this.cacheManager.del('fns-entry')
 
       fs.rmSync(filePath)
     }
-
+    await this.cacheManager.del('fns-zip-entry')
 
     return 'DONE';
   }
