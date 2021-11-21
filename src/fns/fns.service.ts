@@ -38,7 +38,6 @@ export class FnsService {
     }).toPromise()).data;
     const { document } = (new JSDOM(html)).window;
     let links = document.querySelectorAll('.clearfix');
-    await fs.writeFileSync(path.join(path.resolve(__dirname, 'data'), 'logs.txt'), ``)
 
 
     const loadStart: number = await this.cacheManager.get('fns-zip-entry') ?? 1
@@ -65,6 +64,7 @@ export class FnsService {
       if (!fs.existsSync(dirPath)) {
         fs.mkdirSync(dirPath, {recursive: true})
       }
+      await fs.writeFileSync(path.join(path.resolve(__dirname, 'data'), 'logs.txt'), ``)
       await fs.writeFileSync(filePath, response.data)
 
 
