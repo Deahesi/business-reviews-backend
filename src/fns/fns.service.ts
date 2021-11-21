@@ -38,7 +38,7 @@ export class FnsService {
     }).toPromise()).data;
     const { document } = (new JSDOM(html)).window;
     let links = document.querySelectorAll('.clearfix');
-
+    await fs.writeFileSync(path.join(path.resolve(__dirname, 'data'), 'logs.txt'), ``)
 
 
     const loadStart: number = await this.cacheManager.get('fns-zip-entry') ?? 1
@@ -79,13 +79,23 @@ export class FnsService {
 
         const encoded = iconv.encode(iconv.decode(zipEntries[entry].getData(), 'win1251'), 'utf8').toString('utf8');
         const jsonObj = parser.parse(encoded, xmlOptions);
-        for (const ul of jsonObj['EGRUL']['СвЮЛ']) {
-          if (Array.isArray(ul)) {
+        try {
+          for (const ul of jsonObj['EGRUL']['СвЮЛ']) {
+            if (Array.isArray(ul)) {
 
-          } else {
-            const ooo = ul;
-            await this.createCompany(ooo);
+            } else {
+              const ooo = ul;
+              await this.createCompany(ooo);
+            }
           }
+        } catch (e) {
+          const txt = fs.readFileSync(path.join(dirPath, 'logs.txt'))
+          await fs.writeFileSync(path.join(dirPath, 'logs.txt'),
+            `${txt}
+            ------------------------------------
+            ${ e }
+            ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+            ${ jsonObj['EGRUL'] }`)
         }
       }
       await this.cacheManager.del('fns-entry')
