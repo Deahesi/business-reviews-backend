@@ -89,7 +89,7 @@ export class FnsService {
 
             } else {
               const ooo = ul;
-              return await this.createCompany(ooo);
+              await this.createCompany(ooo);
             }
           }
         } catch (e) {
