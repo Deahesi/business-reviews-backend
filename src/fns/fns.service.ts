@@ -40,15 +40,15 @@ export class FnsService {
     let links = document.querySelectorAll('.clearfix');
 
 
-    const loadStart: number = await this.cacheManager.get('fns-zip-entry') ?? 1
+    const loadStart: number = await this.cacheManager.get('fns-zip-entry') ?? 1;
     for (let i: number = loadStart; i < links.length; i++) {
-      console.log(`https://ftp.egrul.nalog.ru/${ links[i].getAttribute('href') }`);
-      await this.cacheManager.set('fns-zip-entry', i)
-      const response = (await this.httpService.get(`https://ftp.egrul.nalog.ru/${ links[i].getAttribute('href') }`, {
+      console.log(`https://ftp.egrul.nalog.ru/${links[i].getAttribute('href')}`);
+      await this.cacheManager.set('fns-zip-entry', i);
+      const response = (await this.httpService.get(`https://ftp.egrul.nalog.ru/${links[i].getAttribute('href')}`, {
         httpsAgent,
         responseType: 'arraybuffer',
         timeout: 30000
-      }).toPromise())
+      }).toPromise());
 
       const fileNameHeader = 'x-suggested-filename';
       const suggestedFileName = response.headers[fileNameHeader];
@@ -62,57 +62,57 @@ export class FnsService {
       const dirPath = path.resolve(__dirname, 'data');
       const filePath = path.join(dirPath, effectiveFileName);
       if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath, {recursive: true})
+        fs.mkdirSync(dirPath, { recursive: true });
       }
-      await fs.writeFileSync(path.join(path.resolve(__dirname, 'data'), 'logs.txt'), ``)
-      await fs.writeFileSync(filePath, response.data)
-      const txt = fs.readFileSync(path.join(dirPath, 'logs.txt'))
+      await fs.writeFileSync(path.join(path.resolve(__dirname, 'data'), 'logs.txt'), ``);
+      await fs.writeFileSync(filePath, response.data);
+      const txt = fs.readFileSync(path.join(dirPath, 'logs.txt'));
       await fs.writeFileSync(path.join(dirPath, 'logs.txt'),
         `${txt}
             /////////////////////////////////////
-            ${ links[i].getAttribute('href') }
-            ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;`)
+            ${links[i].getAttribute('href')}
+            ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;`);
 
 
       const zip = new AdmZip(filePath);
       const zipEntries = zip.getEntries();
 
-      const entryStart: number = await this.cacheManager.get('fns-entry') ?? 0
+      const entryStart: number = await this.cacheManager.get('fns-entry') ?? 0;
       for (let entry: number = entryStart; entry < zipEntries.length; entry++) {
-        let companies = []
-        await this.cacheManager.set('fns-entry', entry)
+        let companies = [];
+        await this.cacheManager.set('fns-entry', entry);
         const encoded = iconv.encode(iconv.decode(zipEntries[entry].getData(), 'win1251'), 'utf8').toString('utf8');
         const jsonObj = parser.parse(encoded, xmlOptions);
 
 
         try {
-          companies = jsonObj['EGRUL']['СвЮЛ'].map((ul) => {
+          for (const ul of jsonObj['EGRUL']['СвЮЛ']) {
             if (Array.isArray(ul)) {
 
             } else {
               const ooo = ul;
-              return this.companyData(ooo);
+              return await this.createCompany(ooo);
             }
-          })
+          }
         } catch (e) {
-          const txt = fs.readFileSync(path.join(dirPath, 'logs.txt'))
+          const txt = fs.readFileSync(path.join(dirPath, 'logs.txt'));
           await fs.writeFileSync(path.join(dirPath, 'logs.txt'),
             `${txt}
             ------------------------------------
-            ${ e }
+            ${e}
             ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-            ${ JSON.stringify(jsonObj['EGRUL']) }`)
+            ${JSON.stringify(jsonObj['EGRUL'])}`);
         }
 
-        await this.createCompany(companies)
+        await this.createCompany(companies);
       }
-      await this.cacheManager.del('fns-entry')
+      await this.cacheManager.del('fns-entry');
 
       if (fs.existsSync(filePath)) {
-        fs.rmSync(filePath)
+        fs.rmSync(filePath);
       }
     }
-    await this.cacheManager.del('fns-zip-entry')
+    await this.cacheManager.del('fns-zip-entry');
 
     return 'DONE';
   }
@@ -127,12 +127,12 @@ export class FnsService {
 
 
     for (let i = 1; i < links.length; i++) {
-      console.log(`https://ftp.egrul.nalog.ru/${ links[i].getAttribute('href') }`);
-      const response = (await this.httpService.get(`https://ftp.egrul.nalog.ru/${ links[i].getAttribute('href') }`, {
+      console.log(`https://ftp.egrul.nalog.ru/${links[i].getAttribute('href')}`);
+      const response = (await this.httpService.get(`https://ftp.egrul.nalog.ru/${links[i].getAttribute('href')}`, {
         httpsAgent,
         responseType: 'arraybuffer',
         timeout: 30000
-      }).toPromise())
+      }).toPromise());
 
       const fileNameHeader = 'x-suggested-filename';
       const suggestedFileName = response.headers[fileNameHeader];
@@ -146,9 +146,9 @@ export class FnsService {
       const dirPath = path.resolve(__dirname, 'data');
       const filePath = path.join(dirPath, effectiveFileName);
       if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath, {recursive: true})
+        fs.mkdirSync(dirPath, { recursive: true });
       }
-      await fs.writeFileSync(filePath, response.data)
+      await fs.writeFileSync(filePath, response.data);
 
 
       const zip = new AdmZip(filePath);
@@ -167,7 +167,7 @@ export class FnsService {
         }
       }
 
-      fs.rmSync(filePath)
+      fs.rmSync(filePath);
     }
 
 
@@ -175,15 +175,14 @@ export class FnsService {
   }
 
   private async updateCompany(ooo) {
-    const companyData = this.companyData(ooo)
+    const companyData = this.companyData(ooo);
     companyData ? await this.companyService.updateCompanyOOO(companyData) : '';
   }
 
 
-  private async createCompany(companyData) {
-    for (const company of companyData) {
-      await this.companyService.updateCompaniesOOO(company);
-    }
+  private async createCompany(ooo) {
+    const company = this.companyData(ooo)
+    await this.companyService.createCompanyOOO(company);
   }
 
   private companyData(ooo) {
@@ -200,19 +199,19 @@ export class FnsService {
       const oooAddress = ooo['СвАдресЮЛ'][addressType]['@_Индекс'] + ', ' + ooo['СвАдресЮЛ'][addressType]['Регион']['@_НаимРегион'] + ' ' + ooo['СвАдресЮЛ'][addressType]['Регион']['@_ТипРегион']
         ?? ooo['СвАдресЮЛ'][addressType]['НаимРегион'];
 
-      const oooRegistration = ooo['СвРегПФ'] ? ooo['СвРегПФ']['@_ДатаРег'] : ooo['СвОбрЮЛ']['ГРНДата']['@_ДатаЗаписи']
+      const oooRegistration = ooo['СвРегПФ'] ? ooo['СвРегПФ']['@_ДатаРег'] : ooo['СвОбрЮЛ']['ГРНДата']['@_ДатаЗаписи'];
 
       const director = ooo['СведДолжнФЛ']
         ? (ooo['СведДолжнФЛ']['СвФЛ'] ? (ooo['СведДолжнФЛ']['СвФЛ']['@_Фамилия'] + ' ' + ooo['СведДолжнФЛ']['СвФЛ']['@_Имя'] + ' ' + ooo['СведДолжнФЛ']['СвФЛ']['@_Отчество'])
-          : (ooo['СведДолжнФЛ'][0]['СвФЛ']['@_Фамилия'] + ' ' + ooo['СведДолжнФЛ'][0]['СвФЛ']['@_Имя'] + ' ' + ooo['СведДолжнФЛ'][0]['СвФЛ']['@_Отчество'])) : null
+          : (ooo['СведДолжнФЛ'][0]['СвФЛ']['@_Фамилия'] + ' ' + ooo['СведДолжнФЛ'][0]['СвФЛ']['@_Имя'] + ' ' + ooo['СведДолжнФЛ'][0]['СвФЛ']['@_Отчество'])) : null;
 
       const director_position = ooo['СведДолжнФЛ']
         ? (ooo['СведДолжнФЛ']['СвДолжн'] ? (ooo['СведДолжнФЛ']['СвДолжн']['@_НаимДолжн'])
-          : (ooo['СведДолжнФЛ'][0]['СвДолжн']['@_НаимДолжн'])): null
+          : (ooo['СведДолжнФЛ'][0]['СвДолжн']['@_НаимДолжн'])) : null;
 
       const director_date = ooo['СведДолжнФЛ']
         ? (ooo['СведДолжнФЛ']['СвДолжн'] ? (ooo['СведДолжнФЛ']['СвДолжн']['ГРНДата']['@_ДатаЗаписи'])
-          : (ooo['СведДолжнФЛ'][0]['СвДолжн']['ГРНДата']['@_ДатаЗаписи'])): null
+          : (ooo['СведДолжнФЛ'][0]['СвДолжн']['ГРНДата']['@_ДатаЗаписи'])) : null;
 
       const companyData: CompanyDto = {
         name: ooo['СвНаимЮЛ']['СвНаимЮЛСокр'] ? ooo['СвНаимЮЛ']['СвНаимЮЛСокр']['@_НаимСокр'].replaceAll('&quot;', '') : ooo['СвНаимЮЛ']['@_НаимЮЛПолн'].replaceAll('&quot;', ''),
@@ -231,9 +230,9 @@ export class FnsService {
         activity: ooo['СвОКВЭД'] ? (ooo['СвОКВЭД']['СвОКВЭДОсн']['@_НаимОКВЭД']) : null,
         entity: ooo['СвНаимЮЛ']['@_НаимЮЛПолн'].replaceAll('&quot;', '')
       };
-      return companyData
+      return companyData;
     } catch (e) {
-      return null
+      return null;
     }
   }
 }

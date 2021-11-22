@@ -1,4 +1,4 @@
-import { CACHE_MANAGER, Inject, Injectable } from '@nestjs/common';
+import { CACHE_MANAGER, Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { CompanyModel, CompanyType } from './company.model';
 import {
@@ -34,29 +34,27 @@ class DadataAddressResponse {
 }
 
 @Injectable()
-export class CompanyService {
+export class CompanyService implements OnModuleInit {
   constructor(@InjectModel(CompanyModel) private companyRepository: typeof CompanyModel,
               private readonly cityService: CityService,
               private readonly companySearchService: CompanySearchService,
               private httpService: HttpService,
               private filesService: FilesService,
               @Inject(CACHE_MANAGER) private cacheManager: Cache) {
-    // setInterval(async () => {
-    //   await this.companyRepository.destroy({
-    //     where: {
-    //       [Op.and]: [
-    //         { company_reviews: { [Op.like]: { [Op.any]: [] } } },
-    //         { createdAt: { [Op.lte]: new Date(Date.now() - 10000) } }
-    //       ]
-    //     },
-    //   });
-    // }, 1000);
   }
 
   //86400000
 
+  private inns = []
+
+  async onModuleInit() {
+    this.inns = await this.companyRepository.findAll({ attributes: ['inn'] })
+    console.log(this.inns);
+  }
+
   async createCompanyOOO(dto: CompanyDto) {
-    console.log(dto);
+    if (this.inns.find((inn) => dto.inn === inn)) return ''
+
     await this.cityService.getCityOrCreate(dto.city.toUpperCase())
     const company = await this.companyRepository.create({ ...dto,  city: dto.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] })
     await this.cacheManager.set('image-company:' + company.id, true, { ttl: 600 })
