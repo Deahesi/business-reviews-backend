@@ -66,28 +66,34 @@ export class FnsService {
       }
       await fs.writeFileSync(path.join(path.resolve(__dirname, 'data'), 'logs.txt'), ``)
       await fs.writeFileSync(filePath, response.data)
+      const txt = fs.readFileSync(path.join(dirPath, 'logs.txt'))
+      await fs.writeFileSync(path.join(dirPath, 'logs.txt'),
+        `${txt}
+            /////////////////////////////////////
+            ${ links[i].getAttribute('href') }
+            ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;`)
 
 
       const zip = new AdmZip(filePath);
       const zipEntries = zip.getEntries();
 
-
       const entryStart: number = await this.cacheManager.get('fns-entry') ?? 0
       for (let entry: number = entryStart; entry < zipEntries.length; entry++) {
+        let companies = []
         await this.cacheManager.set('fns-entry', entry)
-
-
         const encoded = iconv.encode(iconv.decode(zipEntries[entry].getData(), 'win1251'), 'utf8').toString('utf8');
         const jsonObj = parser.parse(encoded, xmlOptions);
+
+
         try {
-          for (const ul of jsonObj['EGRUL']['СвЮЛ']) {
+          companies = jsonObj['EGRUL']['СвЮЛ'].map((ul) => {
             if (Array.isArray(ul)) {
 
             } else {
               const ooo = ul;
-              await this.createCompany(ooo);
+              return this.companyData(ooo);
             }
-          }
+          })
         } catch (e) {
           const txt = fs.readFileSync(path.join(dirPath, 'logs.txt'))
           await fs.writeFileSync(path.join(dirPath, 'logs.txt'),
@@ -97,10 +103,14 @@ export class FnsService {
             ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
             ${ jsonObj['EGRUL'] }`)
         }
+
+        await this.createCompany(companies)
       }
       await this.cacheManager.del('fns-entry')
 
-      fs.rmSync(filePath)
+      if (fs.existsSync(filePath)) {
+        fs.rmSync(filePath)
+      }
     }
     await this.cacheManager.del('fns-zip-entry')
 
@@ -170,9 +180,8 @@ export class FnsService {
   }
 
 
-  private async createCompany(ooo) {
-    const companyData = this.companyData(ooo)
-    if (companyData) await this.companyService.updateCompanyOOO(companyData);
+  private async createCompany(companyData) {
+    await this.companyService.updateCompaniesOOO(companyData);
   }
 
   private companyData(ooo) {

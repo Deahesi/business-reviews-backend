@@ -1,0 +1,5 @@
+
+            ------------------------------------
+            TypeError: jsonObj.EGRUL.СвЮЛ is not iterable
+            ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+            [object Object]
