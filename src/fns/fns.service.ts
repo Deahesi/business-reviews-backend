@@ -101,7 +101,7 @@ export class FnsService {
             ------------------------------------
             ${ e }
             ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-            ${ jsonObj['EGRUL'] }`)
+            ${ JSON.stringify(jsonObj['EGRUL']) }`)
         }
 
         await this.createCompany(companies)
@@ -181,7 +181,9 @@ export class FnsService {
 
 
   private async createCompany(companyData) {
-    await this.companyService.updateCompaniesOOO(companyData);
+    for (const company of companyData) {
+      await this.companyService.updateCompaniesOOO(company);
+    }
   }
 
   private companyData(ooo) {
