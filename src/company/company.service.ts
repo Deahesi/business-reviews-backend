@@ -48,7 +48,7 @@ export class CompanyService implements OnModuleInit {
   private inns = []
 
   async onModuleInit() {
-    this.inns = await this.companyRepository.findAll({ attributes: ['inn'] })
+    this.inns = (await this.companyRepository.findAll({ attributes: ['inn'] })).map((c) => c.inn)
     console.log(this.inns);
   }
 
