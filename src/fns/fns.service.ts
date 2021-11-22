@@ -83,8 +83,6 @@ export class FnsService {
         await this.cacheManager.set('fns-entry', entry);
         const encoded = iconv.encode(iconv.decode(zipEntries[entry].getData(), 'win1251'), 'utf8').toString('utf8');
         const jsonObj = parser.parse(encoded, xmlOptions);
-
-
         try {
           for (const ul of jsonObj['EGRUL']['СвЮЛ']) {
             if (Array.isArray(ul)) {
@@ -103,8 +101,6 @@ export class FnsService {
             ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
             ${JSON.stringify(jsonObj['EGRUL'])}`);
         }
-
-        await this.createCompany(companies);
       }
       await this.cacheManager.del('fns-entry');
 
