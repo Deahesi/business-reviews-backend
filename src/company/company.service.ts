@@ -11,15 +11,11 @@ import {
 import { ReviewModel } from '../review/review.model';
 import { CityService } from '../city/city.service';
 import { Op } from 'sequelize';
-import { UniqueName } from '../exceptions/unique-name';
 import { CompanySearchService } from './company-search.service';
 import { SearchCompanyDto } from './dto/search-company.dto';
 import { CompanyNotfoundException } from '../exceptions/company-notfound.exception';
 import { ValidationException } from '../exceptions/validation.exception';
 import { HttpService } from '@nestjs/axios';
-import { Observable } from 'rxjs';
-import { AxiosResponse } from 'axios';
-import any = jasmine.any;
 import { Cache } from 'cache-manager';
 import { FilesService } from '../files/files.service';
 
@@ -30,7 +26,7 @@ class SearchRequestСonvert {
 }
 
 class DadataAddressResponse {
-  result: ''
+  result: '';
 }
 
 @Injectable()
@@ -45,63 +41,78 @@ export class CompanyService implements OnModuleInit {
 
   //86400000
 
-  private inns = []
+  private inns = [];
 
   async onModuleInit() {
-    this.inns = (await this.companyRepository.findAll({ attributes: ['inn'] })).map((c) => c.inn)
+    this.inns = (await this.companyRepository.findAll({ attributes: ['inn'] })).map((c) => c.inn);
     console.log(this.inns);
   }
 
-  async createCompanyOOO(dto: CompanyDto) {
-    if (this.inns.find((inn) => dto.inn === inn)) return ''
+  async createCompanyOOO(dto: CompanyDto[]) {
+    const preload = dto.splice(dto.findIndex(async (c) => {
+      if (this.inns.find((inn) => c.inn === inn)) {
+        return true;
+      } else {
+        await this.cityService.getCityOrCreate(c.city.toUpperCase());
+        return false;
+      }
+    }), 1);
+    console.log(preload);
 
-    await this.cityService.getCityOrCreate(dto.city.toUpperCase())
-    const company = await this.companyRepository.create({ ...dto,  city: dto.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] })
-    await this.cacheManager.set('image-company:' + company.id, true, { ttl: 600 })
-    await this.companySearchService.indexCompany(company);
-    await this.cityService.addCompanyToCity(company);
-    return company ?? '';
+    const upload = preload.map((c) => ({ ...c, city: c.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] }))
+    const companies = await this.companyRepository.bulkCreate(upload, {returning: true});
+    for (const c of companies) {
+      await this.companySearchService.indexCompany(c);
+      await this.cityService.addCompanyToCity(c);
+    }
+    return companies ?? '';
   }
 
   async updateCompanyOOO(dto: CompanyDto) {
-    await this.cityService.getCityOrCreate(dto.city.toUpperCase())
+    await this.cityService.getCityOrCreate(dto.city.toUpperCase());
     const [company, created] = await this.companyRepository.findOrCreate({
       where: { inn: dto.inn },
-      defaults: { ...dto,  city: dto.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] }
-    })
+      defaults: { ...dto, city: dto.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] }
+    });
     if (created) {
-      await this.cacheManager.set('image-company:' + company.id, true, { ttl: 600 })
+      await this.cacheManager.set('image-company:' + company.id, true, { ttl: 600 });
       await this.companySearchService.indexCompany(company);
       await this.cityService.addCompanyToCity(company);
     } else {
-      await this.companySearchService.updateCompany(company)
+      await this.companySearchService.updateCompany(company);
     }
-    return company ?? ''
+    return company ?? '';
   }
 
   async updateCompaniesOOO(dto: CompanyDto) {
-    await this.cityService.getCityOrCreate(dto.city.toUpperCase())
+    await this.cityService.getCityOrCreate(dto.city.toUpperCase());
     const [company, created] = await this.companyRepository.findOrCreate({
       where: { inn: dto.inn },
-      defaults: { ...dto,  city: dto.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] }
-    })
+      defaults: { ...dto, city: dto.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] }
+    });
     if (created) {
-      await this.cacheManager.set('image-company:' + company.id, true, { ttl: 600 })
+      await this.cacheManager.set('image-company:' + company.id, true, { ttl: 600 });
       await this.companySearchService.indexCompany(company);
       await this.cityService.addCompanyToCity(company);
     } else {
-      await this.companySearchService.updateCompany(company)
+      await this.companySearchService.updateCompany(company);
     }
-    return company ?? ''
+    return company ?? '';
   }
 
 
   async createCompany(dto: CompanyDto) {
     console.log(dto);
     let company: CompanyModel;
-    await this.cityService.getCity(dto.city.toUpperCase())
-    company = await this.companyRepository.create({ ...dto, city: dto.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] });
-    await this.cacheManager.set('image-company:' + company.id, true, { ttl: 600 })
+    await this.cityService.getCity(dto.city.toUpperCase());
+    company = await this.companyRepository.create({
+      ...dto,
+      city: dto.city.toUpperCase(),
+      reviews_count: 0,
+      rating: 0,
+      related_companies: []
+    });
+    await this.cacheManager.set('image-company:' + company.id, true, { ttl: 600 });
     await this.companySearchService.indexCompany(company);
     await this.cityService.addCompanyToCity(company);
     return company;
@@ -118,7 +129,7 @@ export class CompanyService implements OnModuleInit {
     const transformed = {
       ...company.toJSON(),
       company_reviews: company.company_reviews.filter((r) => !r.archive).map((r) => r.getPublicData(company))
-    }
+    };
     return transformed;
   }
 
@@ -177,8 +188,8 @@ export class CompanyService implements OnModuleInit {
       // order: [['rating', 'DESC']],
     })).map((c) => c.getSearchData());
 
-    const query_companies = (await this.companyRepository.findAll({ where: { [Op.and]: [{ id: parseInt(dto.query) || -1 }, { id: { [Op.notIn]: found_companies.map((r) => r.id) } }] } }) ?? []).map((c) => c.getSearchData())
-    return [...query_companies, ...found_companies]
+    const query_companies = (await this.companyRepository.findAll({ where: { [Op.and]: [{ id: parseInt(dto.query) || -1 }, { id: { [Op.notIn]: found_companies.map((r) => r.id) } }] } }) ?? []).map((c) => c.getSearchData());
+    return [...query_companies, ...found_companies];
   }
 
 
@@ -194,8 +205,12 @@ export class CompanyService implements OnModuleInit {
       city: dto.city,
       type: dto.type
     };
-    if (!dto.city) delete where['city']
-    if (!dto.type) delete where['type']
+    if (!dto.city) {
+      delete where['city'];
+    }
+    if (!dto.type) {
+      delete where['type'];
+    }
     // if (dto.city) where.city = dto.city
     // if (dto.type) where.type = dto.type
 
@@ -204,9 +219,9 @@ export class CompanyService implements OnModuleInit {
       include: [{ model: ReviewModel }],
       limit: 10
     })).map((c) => c.getSearchData());
-    const query_companies = (await this.companyRepository.findAll({ where: { [Op.and]: [{ id: parseInt(dto.query) || -1 }, { id: { [Op.notIn]: found_companies.map((r) => r.id) } }] } }) ?? []).map((c) => c.getSearchData())
+    const query_companies = (await this.companyRepository.findAll({ where: { [Op.and]: [{ id: parseInt(dto.query) || -1 }, { id: { [Op.notIn]: found_companies.map((r) => r.id) } }] } }) ?? []).map((c) => c.getSearchData());
 
-    return [...query_companies, ...found_companies]
+    return [...query_companies, ...found_companies];
   }
 
   async bindCompany(dto: BindCompanyDto) {
@@ -231,8 +246,8 @@ export class CompanyService implements OnModuleInit {
       }]);
     }
 
-    await this.companyRepository.update({ related_companies: [...company1.related_companies, company2] }, { where: { id: company1.id } })
-    await this.companyRepository.update({ related_companies: [...company2.related_companies, company1] }, { where: { id: company2.id } })
+    await this.companyRepository.update({ related_companies: [...company1.related_companies, company2] }, { where: { id: company1.id } });
+    await this.companyRepository.update({ related_companies: [...company2.related_companies, company1] }, { where: { id: company2.id } });
 
     return { bind: true };
   }
@@ -258,15 +273,17 @@ export class CompanyService implements OnModuleInit {
         errors: ['Companies is not bound']
       }]);
     }
-    company1.related_companies.splice(company1.related_companies.findIndex((c) => c.id === company2.id), 1)
-    company2.related_companies.splice(company2.related_companies.findIndex((c) => c.id === company1.id), 1)
-    const company1Related = JSON.parse(JSON.stringify(company1.related_companies))
-    const company2Related = JSON.parse(JSON.stringify(company2.related_companies))
-    await this.companyRepository.update({ related_companies: company1Related}, { where: {
+    company1.related_companies.splice(company1.related_companies.findIndex((c) => c.id === company2.id), 1);
+    company2.related_companies.splice(company2.related_companies.findIndex((c) => c.id === company1.id), 1);
+    const company1Related = JSON.parse(JSON.stringify(company1.related_companies));
+    const company2Related = JSON.parse(JSON.stringify(company2.related_companies));
+    await this.companyRepository.update({ related_companies: company1Related }, {
+      where: {
         id: company1.id
-    } });
+      }
+    });
 
-    await this.companyRepository.update({ related_companies: company2Related}, {
+    await this.companyRepository.update({ related_companies: company2Related }, {
       where: {
         id: company2.id
       }
@@ -295,7 +312,7 @@ export class CompanyService implements OnModuleInit {
         'Accept': 'application/json',
         'X-Secret': process.env.DADATA_SECRET_KEY
       }
-    }).toPromise()).data
+    }).toPromise()).data;
   }
 
   async getDadataAddressTips(dto: string[]) {
@@ -306,52 +323,54 @@ export class CompanyService implements OnModuleInit {
         'Accept': 'application/json',
         'X-Secret': process.env.DADATA_SECRET_KEY
       }
-    }).toPromise()).data
+    }).toPromise()).data;
   }
 
   async pushImageToCompany(dto: UploadCompanyImageDto, image: any) {
-    const id = parseInt(dto.company_id)
-    const company = await this.companyRepository.findByPk(id)
+    const id = parseInt(dto.company_id);
+    const company = await this.companyRepository.findByPk(id);
     if (!company) {
       throw new CompanyNotfoundException([{
         field: 'id',
         errors: ['No companies with this id']
-      }])
+      }]);
     }
-    const allowToUpload = await this.cacheManager.get('image-company:' + company.id)
-    if (!allowToUpload || company.image) throw new ValidationException([
-      {
-        field: 'image',
-        errors: ['You are not allowed to upload images']
-      }
-    ])
+    const allowToUpload = await this.cacheManager.get('image-company:' + company.id);
+    if (!allowToUpload || company.image) {
+      throw new ValidationException([
+        {
+          field: 'image',
+          errors: ['You are not allowed to upload images']
+        }
+      ]);
+    }
 
-    await this.cacheManager.del('image-company:' + company.id)
+    await this.cacheManager.del('image-company:' + company.id);
 
-    const imageUrl = await this.filesService.createFile(image)
-    await company.update({ image: imageUrl })
+    const imageUrl = await this.filesService.createFile(image);
+    await company.update({ image: imageUrl });
 
     return {
       uploaded: true
-    }
+    };
   }
 
   async getAllById(params: object) {
-    return this.companyRepository.findAll(params)
+    return this.companyRepository.findAll(params);
   }
 
   async countRatingAndReviews(id: number) {
-    const company = await this.companyRepository.findByPk(id)
-    const company_reviews = await company.$get('company_reviews')
-    let company_rating = 0
-    let length = 0
+    const company = await this.companyRepository.findByPk(id);
+    const company_reviews = await company.$get('company_reviews');
+    let company_rating = 0;
+    let length = 0;
     for (const r of company_reviews) {
       if (!r.archive) {
-        length++
+        length++;
         company_rating += r.rating;
       }
     }
-    company_rating = company_rating / length
+    company_rating = company_rating / length;
     await company.update({
       reviews_count: length,
       rating: company_rating
