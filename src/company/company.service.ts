@@ -30,7 +30,7 @@ class DadataAddressResponse {
 }
 
 @Injectable()
-export class CompanyService implements OnModuleInit {
+export class CompanyService {
   constructor(@InjectModel(CompanyModel) private companyRepository: typeof CompanyModel,
               private readonly cityService: CityService,
               private readonly companySearchService: CompanySearchService,
@@ -41,57 +41,57 @@ export class CompanyService implements OnModuleInit {
 
   //86400000
 
-  private inns = [];
-  private cities = [];
+  // private inns = [];
+  // private cities = [];
+  //
+  // async onModuleInit() {
+  //   this.inns = (await this.companyRepository.findAll({ attributes: ['inn'] })).map((c) => c.inn);
+  //   this.cities = await this.cityService.getAllCities()
+  //   console.log(this.inns);
+  //   console.log(this.cities);
+  // }
 
-  async onModuleInit() {
-    this.inns = (await this.companyRepository.findAll({ attributes: ['inn'] })).map((c) => c.inn);
-    this.cities = await this.cityService.getAllCities()
-    console.log(this.inns);
-    console.log(this.cities);
-  }
-
-  async createCompanyOOO(dto: CompanyDto[]) {
-    const preload = dto.splice(dto.findIndex((c) => {
-      if (this.inns.find((inn) => c.inn === inn)) {
-        return true;
-      } else {
-        return false;
-      }
-    }), 1);
-    for (const company of preload) {
-      const city = this.cities.find((city) => city === company.city.toUpperCase())
-      if (!city) await this.cityService.getCityOrCreate(company.city.toUpperCase())
-    }
-    console.log(preload);
-
-    if (preload.length) {
-      const upload = preload.map((c) => ({ ...c, city: c.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] }))
-      const companies = await this.companyRepository.bulkCreate(upload, {returning: true});
-      for (const c of companies) {
-        await this.companySearchService.indexCompany(c);
-        await this.cityService.addCompanyToCity(c);
-      }
-      return companies ?? '';
-    }
-
-    return ''
-  }
+  // async createCompanyOOO(dto: CompanyDto[]) {
+  //   const preload = dto.splice(dto.findIndex((c) => {
+  //     if (this.inns.find((inn) => c.inn === inn)) {
+  //       return true;
+  //     } else {
+  //       return false;
+  //     }
+  //   }), 1);
+  //   for (const company of preload) {
+  //     const city = this.cities.find((city) => city === company.city.toUpperCase())
+  //     if (!city) await this.cityService.getCityOrCreate(company.city.toUpperCase())
+  //   }
+  //   console.log(preload);
+  //
+  //   if (preload.length) {
+  //     const upload = preload.map((c) => ({ ...c, city: c.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] }))
+  //     const companies = await this.companyRepository.bulkCreate(upload, {returning: true});
+  //     for (const c of companies) {
+  //       await this.companySearchService.indexCompany(c);
+  //       await this.cityService.addCompanyToCity(c);
+  //     }
+  //     return companies ?? '';
+  //   }
+  //
+  //   return ''
+  // }
 
   async updateCompanyOOO(dto: CompanyDto) {
-    await this.cityService.getCityOrCreate(dto.city.toUpperCase());
+    await this.cityService.getCityOrCreate(dto.city.toUpperCase())
     const [company, created] = await this.companyRepository.findOrCreate({
       where: { inn: dto.inn },
-      defaults: { ...dto, city: dto.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] }
-    });
+      defaults: { ...dto,  city: dto.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] }
+    })
     if (created) {
-      await this.cacheManager.set('image-company:' + company.id, true, { ttl: 600 });
+      await this.cacheManager.set('image-company:' + company.id, true, { ttl: 600 })
       await this.companySearchService.indexCompany(company);
       await this.cityService.addCompanyToCity(company);
     } else {
-      await this.companySearchService.updateCompany(company);
+      await this.companySearchService.updateCompany(company)
     }
-    return company ?? '';
+    return company ?? ''
   }
 
   async updateCompaniesOOO(dto: CompanyDto) {

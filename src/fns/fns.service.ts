@@ -84,20 +84,20 @@ export class FnsService {
         const encoded = iconv.encode(iconv.decode(zipEntries[entry].getData(), 'win1251'), 'utf8').toString('utf8');
         const jsonObj = parser.parse(encoded, xmlOptions);
         try {
-          companies = jsonObj['EGRUL']['СвЮЛ'].map((c) => {
-            if (Array.isArray(c)) {
-              return
-            }
-            return this.companyData(c);
-          })
-          // for (const ul of jsonObj['EGRUL']['СвЮЛ']) {
-          //   if (Array.isArray(ul)) {
-          //
-          //   } else {
-          //     const ooo = ul;
-          //     await this.createCompany(ooo);
+          // companies = jsonObj['EGRUL']['СвЮЛ'].map((c) => {
+          //   if (Array.isArray(c)) {
+          //     return
           //   }
-          // }
+          //   return this.companyData(c);
+          // })
+          for (const ul of jsonObj['EGRUL']['СвЮЛ']) {
+            if (Array.isArray(ul)) {
+
+            } else {
+              const ooo = ul;
+              await this.createCompany(ooo);
+            }
+          }
         } catch (e) {
           const txt = fs.readFileSync(path.join(dirPath, 'logs.txt'));
           await fs.writeFileSync(path.join(dirPath, 'logs.txt'),
@@ -107,8 +107,6 @@ export class FnsService {
             ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
             ${JSON.stringify(jsonObj['EGRUL'])}`);
         }
-
-        await this.createCompany(companies)
       }
       await this.cacheManager.del('fns-entry');
 
@@ -185,7 +183,8 @@ export class FnsService {
 
 
   private async createCompany(ooo) {
-    await this.companyService.createCompanyOOO(ooo);
+    const companyData = this.companyData(ooo);
+    companyData ? await this.companyService.updateCompanyOOO(companyData) : '';
   }
 
   private companyData(ooo) {
