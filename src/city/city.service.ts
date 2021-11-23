@@ -103,12 +103,10 @@ export class CityService implements OnModuleInit {
         city: city.toUpperCase()
       }
     });
-    if (!cityRes) {
-      throw new ValidationException([{
-        field: 'city',
-        errors: ['No city with this name']
-      }])
-    }
     return cityRes;
+  }
+
+  async getAllCities() {
+    return (await this.cityRepository.findAll()).map((c) => c.getCity());
   }
 }

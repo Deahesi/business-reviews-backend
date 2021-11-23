@@ -42,21 +42,27 @@ export class CompanyService implements OnModuleInit {
   //86400000
 
   private inns = [];
+  private cities = [];
 
   async onModuleInit() {
     this.inns = (await this.companyRepository.findAll({ attributes: ['inn'] })).map((c) => c.inn);
+    this.cities = await this.cityService.getAllCities()
     console.log(this.inns);
+    console.log(this.cities);
   }
 
   async createCompanyOOO(dto: CompanyDto[]) {
-    const preload = dto.splice(dto.findIndex(async (c) => {
+    const preload = dto.splice(dto.findIndex((c) => {
       if (this.inns.find((inn) => c.inn === inn)) {
         return true;
       } else {
-        await this.cityService.getCityOrCreate(c.city.toUpperCase());
         return false;
       }
     }), 1);
+    for (const company of preload) {
+      const city = this.cities.find((city) => city === company.city.toUpperCase())
+      if (!city) await this.cityService.getCityOrCreate(company.city.toUpperCase())
+    }
     console.log(preload);
 
     const upload = preload.map((c) => ({ ...c, city: c.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] }))
@@ -102,7 +108,13 @@ export class CompanyService implements OnModuleInit {
 
 
   async createCompany(dto: CompanyDto) {
-    console.log(dto);
+    const created = await this.companyRepository.findOne({ where: { inn: dto.inn || 'none inn' } })
+    if (created) {
+      throw new ValidationException([{
+        field: 'inn',
+        errors: ['Inn is already exist']
+      }])
+    }
     let company: CompanyModel;
     await this.cityService.getCity(dto.city.toUpperCase());
     company = await this.companyRepository.create({
