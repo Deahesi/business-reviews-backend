@@ -65,13 +65,17 @@ export class CompanyService implements OnModuleInit {
     }
     console.log(preload);
 
-    const upload = preload.map((c) => ({ ...c, city: c.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] }))
-    const companies = await this.companyRepository.bulkCreate(upload, {returning: true});
-    for (const c of companies) {
-      await this.companySearchService.indexCompany(c);
-      await this.cityService.addCompanyToCity(c);
+    if (preload.length) {
+      const upload = preload.map((c) => ({ ...c, city: c.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] }))
+      const companies = await this.companyRepository.bulkCreate(upload, {returning: true});
+      for (const c of companies) {
+        await this.companySearchService.indexCompany(c);
+        await this.cityService.addCompanyToCity(c);
+      }
+      return companies ?? '';
     }
-    return companies ?? '';
+
+    return ''
   }
 
   async updateCompanyOOO(dto: CompanyDto) {
