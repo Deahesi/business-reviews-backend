@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { FnsService } from './fns.service';
 
@@ -24,6 +24,13 @@ export class FnsController {
   async startCompaniesDownloadEndpoint() {
     if (process.env.NODE_ENV === 'development') {
       return await this.fnsService.startCompaniesDownload();
+    }
+  }
+
+  @Get('reset/:n')
+  async resetCompaniesDownloadEndpoint(@Param() params) {
+    if (process.env.NODE_ENV !== 'development') {
+      return await this.fnsService.resetCompaniesDownload(parseInt(params.n));
     }
   }
 

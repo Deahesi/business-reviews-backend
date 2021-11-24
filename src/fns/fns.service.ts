@@ -47,7 +47,7 @@ export class FnsService {
       const response = (await this.httpService.get(`https://ftp.egrul.nalog.ru/${links[i].getAttribute('href')}`, {
         httpsAgent,
         responseType: 'arraybuffer',
-        timeout: 30000
+        timeout: 200000
       }).toPromise());
 
       const fileNameHeader = 'x-suggested-filename';
@@ -236,5 +236,11 @@ export class FnsService {
     } catch (e) {
       return null;
     }
+  }
+
+  async resetCompaniesDownload(archive_number: number) {
+    await this.cacheManager.set('fns-zip-entry', archive_number ?? 1);
+    await this.cacheManager.set('fns-entry', 1);
+    return await this.cacheManager.get('fns-zip-entry');
   }
 }
