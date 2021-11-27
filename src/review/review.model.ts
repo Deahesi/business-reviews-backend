@@ -93,6 +93,7 @@ export class ReviewModel extends Model<ReviewModel, CreateReview> {
       company_id: this.company_id,
       createdAt: this.createdAt,
       archive: this.archive,
+      company_inn: company ? company.inn : undefined,
       company_city: company ? company.city : undefined,
       company_rating: company ? company.rating : undefined
     }
