@@ -22,10 +22,10 @@ export class SitemapController {
   @Get('')
   async sitemap(@Res() res) {
     res.set('Content-Type', 'text/xml')
-    // if (this.sitemapXmlCache) {
-    //   res.send(this.sitemapXmlCache);
-    //   return;
-    // }
+    if (this.sitemapXmlCache) {
+      res.send(this.sitemapXmlCache);
+      return;
+    }
 
     const companiesIds = await this.companyService.getAllCompaniesIdsNames()
     const reviewsIds = await this.reviewService.getAllReviewsId()

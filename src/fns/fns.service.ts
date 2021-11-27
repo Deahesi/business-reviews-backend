@@ -189,7 +189,6 @@ export class FnsService {
 
   private companyData(ooo) {
     try {
-      console.log(ooo?.СвСтатус);
       if (ooo?.СвСтатус?.СвСтатус['@_КодСтатусЮЛ'] === '101') return
       const addressType = ooo['СвАдресЮЛ']['АдресРФ'] ? 'АдресРФ' : 'СвАдрЮЛФИАС';
 
