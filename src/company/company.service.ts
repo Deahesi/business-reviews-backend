@@ -392,4 +392,8 @@ export class CompanyService {
       rating: company_rating
     })
   }
+
+  async getAllCompaniesIdsNames() {
+    return await this.companyRepository.findAll({ attributes: ['id', 'name'] })
+  }
 }

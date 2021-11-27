@@ -15,6 +15,7 @@ import { FilesModule } from './files/files.module';
 import * as redisStore from 'cache-manager-redis-store';
 import { ScheduleModule } from '@nestjs/schedule';
 import { FnsModule } from './fns/fns.module';
+import { SitemapModule } from './sitemap/sitemap.module';
 
 //TODO: Вернуть как было
 @Module({
@@ -52,7 +53,8 @@ import { FnsModule } from './fns/fns.module';
     ReviewModule,
     AdminModule,
     EmailModule,
-    FnsModule
+    FnsModule,
+    SitemapModule
   ],
   controllers: [],
   providers: []

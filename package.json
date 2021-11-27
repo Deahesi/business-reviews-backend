@@ -44,6 +44,7 @@
     "class-transformer": "^0.4.0",
     "class-validator": "^0.13.1",
     "cross-env": "^7.0.3",
+    "cyrillic-to-translit-js": "^3.1.0",
     "dadata": "^0.0.3",
     "fast-xml-parser": "^3.21.1",
     "iconv-lite": "^0.4.24",
@@ -60,6 +61,7 @@
     "rxjs": "^7.2.0",
     "sequelize": "^6.6.5",
     "sequelize-typescript": "^2.1.0",
+    "sitemap": "^5.1.0",
     "swagger-ui-express": "^4.1.6",
     "uuid": "^8.3.2"
   },

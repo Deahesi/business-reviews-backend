@@ -118,4 +118,8 @@ export class ReviewService {
       uploaded: true
     }
   }
+
+  async getAllReviewsId() {
+    return await this.reviewRepository.findAll({ attributes: ['id'] })
+  }
 }
