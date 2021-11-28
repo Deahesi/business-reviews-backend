@@ -103,7 +103,7 @@ export class CityService implements OnModuleInit {
         city: city.toUpperCase()
       }
     });
-    return cityRes;
+    return cityRes.id;
   }
 
   async getAllCities() {

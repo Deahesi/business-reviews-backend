@@ -36,6 +36,7 @@ export interface CreateCompany {
   createdAt?: string
   capital?: number
   director_date?: string
+  city_id?: number
   related_companies: RelatedCompany[]
 }
 

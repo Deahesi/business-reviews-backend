@@ -79,19 +79,21 @@ export class CompanyService {
   // }
 
   async updateCompanyOOO(dto: CompanyDto) {
-    await this.cityService.getCityOrCreate(dto.city.toUpperCase())
-    const [company, created] = await this.companyRepository.findOrCreate({
-      where: { inn: dto.inn },
-      defaults: { ...dto,  city: dto.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [] }
-    })
-    if (created) {
-      await this.cacheManager.set('image-company:' + company.id, true, { ttl: 600 })
-      await this.companySearchService.indexCompany(company);
-      await this.cityService.addCompanyToCity(company);
-    } else {
-      await this.companySearchService.updateCompany(company)
+    const city_id = await this.cityService.getCityOrCreate(dto.city.toUpperCase())
+    try {
+      const [company, created] = await this.companyRepository.findOrCreate({
+        where: { inn: dto.inn },
+        defaults: { ...dto,  city: dto.city.toUpperCase(), reviews_count: 0, rating: 0, related_companies: [], city_id }
+      })
+      if (created) {
+        await this.companySearchService.indexCompany(company);
+      } else {
+        await this.companySearchService.updateCompany(company)
+      }
+      return company ?? ''
+    } catch (e) {
+      return ''
     }
-    return company ?? ''
   }
 
   async updateCompaniesOOO(dto: CompanyDto) {
