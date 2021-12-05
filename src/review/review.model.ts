@@ -109,6 +109,7 @@ export class ReviewModel extends Model<ReviewModel, CreateReview> {
       images: this.images,
       company_id: this.company_id,
       createdAt: this.createdAt,
+      company_inn: company ? company.inn : undefined,
       company_city: company ? company.city : undefined,
       company_rating: company ? company.rating : undefined,
       company_reviews: company ? company.company_reviews.filter((r) => !r.archive).map((r) => r.getPublicData()) : undefined
