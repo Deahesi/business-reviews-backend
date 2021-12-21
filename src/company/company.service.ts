@@ -41,15 +41,19 @@ export class CompanyService {
 
   //86400000
 
-  // private inns = [];
+  private activities = [];
   // private cities = [];
   //
-  // async onModuleInit() {
-  //   this.inns = (await this.companyRepository.findAll({ attributes: ['inn'] })).map((c) => c.inn);
-  //   this.cities = await this.cityService.getAllCities()
-  //   console.log(this.inns);
-  //   console.log(this.cities);
-  // }
+  async onModuleInit() {
+    this.activities = (await this.companyRepository.findAll({ attributes: ['activity'] })).map((c) => c.activity);
+    const act = []
+    for (const activity of this.activities) {
+      if (!act.find((act) => act === activity) && activity) {
+        act.push(activity)
+      }
+    }
+    this.activities = act
+  }
 
   // async createCompanyOOO(dto: CompanyDto[]) {
   //   const preload = dto.splice(dto.findIndex((c) => {
@@ -397,5 +401,9 @@ export class CompanyService {
 
   async getAllCompaniesIdsNames() {
     return await this.companyRepository.findAll({ attributes: ['id', 'name'] })
+  }
+
+  getActivities() {
+    return this.activities
   }
 }

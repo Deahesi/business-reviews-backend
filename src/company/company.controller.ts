@@ -43,6 +43,12 @@ export class CompanyController {
     return await this.companyService.createCompany(dto)
   }
 
+  @Get('/activities')
+  @HttpCode(HttpStatus.OK)
+  async getActivities() {
+    return this.companyService.getActivities()
+  }
+
   @ApiOperation({summary: 'Add company image'})
   @ApiResponse({ status: 201, type: CompanyModel })
   @Post('/image')
