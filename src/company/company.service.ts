@@ -126,17 +126,18 @@ export class CompanyService {
       }])
     }
     let company: CompanyModel;
-    await this.cityService.getCity(dto.city.toUpperCase());
+    const city = await this.cityService.getCity(dto.city.toUpperCase());
     company = await this.companyRepository.create({
       ...dto,
       city: dto.city.toUpperCase(),
+      city_id: city.id,
       reviews_count: 0,
       rating: 0,
       related_companies: []
     });
     await this.cacheManager.set('image-company:' + company.id, true, { ttl: 600 });
     await this.companySearchService.indexCompany(company);
-    await this.cityService.addCompanyToCity(company);
+    // await this.cityService.addCompanyToCity(company);
     return company;
   }
 
