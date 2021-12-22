@@ -26,7 +26,7 @@ export class CityService implements OnModuleInit {
       }])
     }
 
-    this.citySearchService.indexCity(city)
+    // this.citySearchService.indexCity(city)
 
     await city.$set('city_companies', [...await city.$get('city_companies'), company]);
     return city;
