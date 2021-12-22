@@ -75,6 +75,7 @@ export class ReviewService {
 
   async createReviewWithCompany(dto: CreateReviewWithCompanyDto) {
     const company = await this.companyService.createCompany({ ...dto.company })
+    console.log('Created company');
     const review = await this.createReview({ ...dto, company_id: company.id })
     return review
   }
