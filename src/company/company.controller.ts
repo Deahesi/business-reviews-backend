@@ -7,7 +7,7 @@ import {
   Injectable,
   Param,
   Patch,
-  Post, UploadedFile,
+  Post, Query, UploadedFile,
   UseInterceptors, UsePipes
 } from '@nestjs/common';
 import {
@@ -48,6 +48,13 @@ export class CompanyController {
   async getActivities() {
     return this.companyService.getActivities()
   }
+
+  @Get('/search/activity')
+  @HttpCode(HttpStatus.OK)
+  async getByActivity(@Query('activity') activity) {
+    return this.companyService.getByActivity(activity, '1')
+  }
+
 
   @ApiOperation({summary: 'Add company image'})
   @ApiResponse({ status: 201, type: CompanyModel })

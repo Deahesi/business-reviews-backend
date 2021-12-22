@@ -403,6 +403,11 @@ export class CompanyService {
     return await this.companyRepository.findAll({ attributes: ['id', 'name'] })
   }
 
+  async getByActivity(activity: string, page: string) {
+    const act = activity.replaceAll('+', ' ')
+    return (await this.companyRepository.findAll({ where: { activity: act }, limit: 10, offset: ((parseInt(page) || 1) - 1) * 10 })).map((c) => c.getSearchData())
+  }
+
   getActivities() {
     return this.activities
   }

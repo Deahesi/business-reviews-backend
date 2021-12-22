@@ -28,14 +28,15 @@ export class ReviewService {
       }])
     }
 
+    console.log('Validated company 1');
     const review = await this.reviewRepository.create({ ...dto, images: [], company_id: company.id, archive: false, company_name: company.name })
-
+    console.log('Created review 2');
     await this.cacheManager.set('image:' + review.id, true, { ttl: 600 })
-
+    console.log('Setted cache 3');
     await this.companyService.countRatingAndReviews(company.id)
+    console.log('Counted reviews 4');
 
-
-    return review.getPublicData()
+    return review.getPublicData(company)
   }
 
   async findById(id: number) {
