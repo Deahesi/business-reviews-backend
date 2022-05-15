@@ -51,8 +51,8 @@ export class CompanyController {
 
   @Get('/search/activity')
   @HttpCode(HttpStatus.OK)
-  async getByActivity(@Query('activity') activity) {
-    return this.companyService.getByActivity(activity, '1')
+  async getByActivity(@Query('activity') activity, @Query('page') page) {
+    return this.companyService.getByActivity(activity, page)
   }
 
 

@@ -33,7 +33,7 @@ export class FnsService {
   }
 
   async startCompaniesDownload() {
-    const html = (await this.httpService.get(`https://ftp.egrul.nalog.ru/?dir=EGRUL_406/01.01.${new Date().getFullYear()}_FULL`, {
+    const html = (await this.httpService.get(`https://ftp.egrul.nalog.ru/?dir=EGRUL_406/01.01.${2021}_FULL`, {
       httpsAgent
     }).toPromise()).data;
     const { document } = (new JSDOM(html)).window;
