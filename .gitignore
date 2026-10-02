@@ -35,3 +35,9 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 /fns-data
+
+# Local environment files
+.env
+.env.*
+.*.env
+!.env.example
